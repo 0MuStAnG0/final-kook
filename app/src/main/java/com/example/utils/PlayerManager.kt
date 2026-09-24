@@ -47,9 +47,12 @@ object PlayerManager {
         val player = ExoPlayer.Builder(appContext, renderersFactory)
             .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(audioAttributes, true)
+            .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(androidx.media3.common.C.WAKE_MODE_NONE)
             .build()
             .apply {
                 repeatMode = Player.REPEAT_MODE_ALL
+                volume = 1.0f
             }
         sharedPlayer = player
         return player
@@ -58,9 +61,12 @@ object PlayerManager {
     @Synchronized
     fun pausePlayback() {
         sharedPlayer?.let {
-            if (it.isPlaying) {
+            try {
+                it.playWhenReady = false
                 it.pause()
-            }
+                it.stop()
+                it.clearMediaItems()
+            } catch (_: Throwable) {}
         }
     }
 

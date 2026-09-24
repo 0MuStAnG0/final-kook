@@ -121,8 +121,12 @@ fun VideoFeedItem(
                 onDispose {
                     exoPlayer.removeListener(listener)
                     if (exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() == post.videoUrl) {
-                        exoPlayer.playWhenReady = false
-                        exoPlayer.pause()
+                        try {
+                            exoPlayer.playWhenReady = false
+                            exoPlayer.pause()
+                            exoPlayer.stop()
+                            exoPlayer.clearMediaItems()
+                        } catch (_: Throwable) {}
                     }
                 }
             }
@@ -142,8 +146,12 @@ fun VideoFeedItem(
                     }
                 } else {
                     if (exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() == post.videoUrl) {
-                        exoPlayer.playWhenReady = false
-                        exoPlayer.pause()
+                        try {
+                            exoPlayer.playWhenReady = false
+                            exoPlayer.pause()
+                            exoPlayer.stop()
+                            exoPlayer.clearMediaItems()
+                        } catch (_: Throwable) {}
                     }
                 }
             }
