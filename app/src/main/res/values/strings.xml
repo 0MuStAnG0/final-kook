@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Final kook - کوک</string>
+    <string name="feed_tab">ویترین</string>
+    <string name="discover_tab">گشت‌و‌گذار</string>
+    <string name="add_tab">افزودن</string>
+    <string name="wallet_tab">کیف پول</string>
+    <string name="profile_tab">پروفایل</string>
+    <string name="map_tab">نقشه</string>
+    <string name="orders_tab">سفارشات</string>
+    <string name="daily_reward_title">هدیه روزانه کوک!</string>
+    <string name="daily_reward_desc">کد تخفیف خرید ویژه شما از ویترین‌ها:</string>
+    <string name="daily_reward_btn">دریافت و اعمال در خرید</string>
+    <string name="copyright_notice">تمام حق اثر متعلق به Orange IT است</string>
+    <string name="copyright_english">All Rights Reserved © Orange IT (www.orangeit.site)</string>
+</resources>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="10"
+        android:translateY="14"
+        android:scaleX="0.8"
+        android:scaleY="0.8">
+        
+        <!-- Dark Teal Speech Bubble -->
+        <path
+            android:fillColor="#1A6773"
+            android:pathData="M65,15 C87.09,15 105,32.91 105,55 C105,77.09 87.09,95 65,95 C42.91,95 25,77.09 25,55 C25,48.09 26.75,41.59 29.84,36 Z" />
+            
+        <!-- Beige Inner Circle -->
+        <path
+            android:fillColor="#F3EBE1"
+            android:pathData="M65,25 C81.57,25 95,38.43 95,55 C95,71.57 81.57,85 65,85 C48.43,85 35,71.57 35,55 C35,38.43 48.43,25 65,25 Z" />
+
+        <!-- Speech bubble little tail -->
+        <path
+            android:fillColor="#F3EBE1"
+            android:pathData="M80,80 L95,95 L70,85 Z" />
+
+        <!-- Orange Smile -->
+        <path
+            android:strokeColor="#E58331"
+            android:strokeWidth="7"
+            android:strokeLineCap="round"
+            android:pathData="M50,55 Q65,70 80,55" />
+
+        <!-- Orange K Stem -->
+        <path
+            android:fillColor="#E58331"
+            android:pathData="M5,15 L20,15 L20,95 L5,95 Z" />
+        
+        <!-- Top Arm -->
+        <path
+            android:fillColor="#E58331"
+            android:pathData="M20,65 L55,30 L65,30 L40,55 Z" />
+            
+        <!-- Arrowhead -->
+        <path
+            android:fillColor="#E58331"
+            android:pathData="M45,15 L65,15 L65,35 Z" /> 
+            
+        <!-- Bottom Arm -->
+        <path
+            android:fillColor="#E58331"
+            android:pathData="M20,60 L50,95 L70,95 L35,55 Z" />
+    </group>
+</vector>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="شبکه اجتماعی و فروشگاه کوک با امکان پرداخت آنی و کسب درآمد">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="کوک">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Theme & PWA -->
+  <meta name="theme-color" content="#4F46E5">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>کوک | شبکه اجتماعی و فروشگاه آنلاین</title>
+
+  <!-- Google Fonts for Persian typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0B0F19;
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #loading-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #1E1B4B 0%, #0B0F19 100%);
+      color: #FFFFFF;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .brand-logo {
+      width: 84px;
+      height: 84px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #4F46E5, #9333EA);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      font-weight: 900;
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+      margin-bottom: 20px;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    .brand-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-bottom: 30px;
+    }
+
+    .spinner {
+      width: 38px;
+      height: 38px;
+      border: 3px solid rgba(79, 70, 229, 0.2);
+      border-top: 3px solid #6366F1;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-container">
+    <div class="brand-logo">ک</div>
+    <div class="brand-title">کوک</div>
+    <div class="brand-subtitle">شبکه اجتماعی و فروشگاه آنلاین</div>
+    <div class="spinner"></div>
+  </div>
+
+  <script>
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js')
+          .then(function(reg) {
+            console.log('Kook PWA Service Worker Registered', reg.scope);
+          })
+          .catch(function(err) {
+            console.log('Kook PWA Service Worker failed: ', err);
+          });
+      });
+    }
+
+    // Hide splash when Flutter web initializes
+    window.addEventListener('flutter-first-frame', function() {
+      const loader = document.getElementById('loading-container');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.remove(), 500);
+      }
+    });
+  </script>
+
+  <script src="flutter.js" defer></script>
+</body>
+</html>

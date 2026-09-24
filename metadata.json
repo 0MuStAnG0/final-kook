@@ -1,0 +1,8 @@
+{
+  "name": "web Final kook - کوک",
+  "description": "شبکه اجتماعی و فروشگاه کوک با امکان پرداخت آنی و کسب درآمد",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
