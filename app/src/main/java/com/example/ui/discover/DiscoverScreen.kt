@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +34,7 @@ import com.example.data.MockData
 import com.example.data.Post
 import com.example.data.User
 import com.example.ui.feed.LiveShoppingOverlay
+import com.example.ui.components.tactileStoreCard
 import com.example.ui.theme.*
 import com.example.utils.toPersianCurrency
 import com.example.utils.toPersianNumber
@@ -688,7 +691,17 @@ fun SectionHeader(title: String, icon: androidx.compose.ui.graphics.vector.Image
 fun NearbyStoreItem(store: User, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp)
+        modifier = Modifier
+            .width(84.dp)
+            .tactileStoreCard(
+                pressedScale = 0.93f,
+                defaultElevation = 2.dp,
+                pressedElevation = 10.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = EmeraldSuccess,
+                onClick = onClick
+            )
+            .padding(4.dp)
     ) {
         Box(
             modifier = Modifier
@@ -739,7 +752,15 @@ fun RecommendedStoreCard(store: User, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .tactileStoreCard(
+                pressedScale = 0.965f,
+                defaultElevation = 4.dp,
+                pressedElevation = 18.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = IndigoPrimary,
+                onClick = onClick
+            ),
         colors = CardDefaults.cardColors(containerColor = GlassBackground),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, GlassBorder)
@@ -855,69 +876,77 @@ fun HotPostItem(post: Post) {
     }
 }
 
-data class BrandShowcase(
-    val id: String,
-    val brandName: String,
-    val tagline: String,
-    val badge: String,
-    val bannerUrl: String,
-    val discountText: String,
-    val bgGradient: List<Color>
-)
-
 @Composable
 fun BrandShowcaseBannerCarousel(onNavigateToStore: (String) -> Unit) {
-    val showcases = remember {
+    // Collect all stores with verified badge (تیک آبی)
+    val allVerifiedStores = remember(AppState.currentUser) {
+        val storeMap = linkedMapOf<String, User>()
+        MockData.users.filter { it.isVerified }.forEach { storeMap[it.id] = it }
+        MockData.posts.map { it.author }.filter { it.isVerified }.forEach { author ->
+            storeMap.putIfAbsent(author.id, author)
+        }
+        if (AppState.currentUser.isVerified && (AppState.currentUser.isSeller || AppState.currentUser.accountType == com.example.data.AccountType.STORE_OWNER)) {
+            storeMap.putIfAbsent(AppState.currentUser.id, AppState.currentUser)
+        }
+        storeMap.values.toList()
+    }
+
+    // Available categories extracted from verified stores
+    val availableCategories = remember {
         listOf(
-            BrandShowcase(
-                id = "brand_novin_leather",
-                brandName = "نوین چرم | Novin Leather",
-                tagline = "جشنواره فروش مستقیم کاپشن، کیف و کفش چرم طبیعی با ضمانت ۲ ساله",
-                badge = "برند رسمی و تاییدشده",
-                bannerUrl = "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80",
-                discountText = "تا ۳۵٪ تخفیف افتتاحیه ویترین",
-                bgGradient = listOf(Color(0xFF831843), Color(0xFF1E1B4B))
-            ),
-            BrandShowcase(
-                id = "brand_hakopian",
-                brandName = "هاکوپیان | HAKOPIAN",
-                tagline = "کالکشن کت و شلوارهای پشمی ایتالیایی و سفارش شخصی‌دوزی با نوبت پرو حضوری",
-                badge = "اصالت پارچه ۱۰۰٪ پشم",
-                bannerUrl = "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80",
-                discountText = "ارسال اکسپرس و کاور اختصاصی",
-                bgGradient = listOf(Color(0xFF0F172A), Color(0xFF1E293B))
-            ),
-            BrandShowcase(
-                id = "brand_dorian_leather",
-                brandName = "چرم درسا | Dorsa Group",
-                tagline = "کلکسیون لوکس کیف‌های دستی و مجلسی دیبا؛ طراحی ماندگار با یراق‌آلات طلایی",
-                badge = "ویترین برندهای مجلل",
-                bannerUrl = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
-                discountText = "هدایای ویژه اعضای کوک",
-                bgGradient = listOf(Color(0xFF701A75), Color(0xFF18181B))
-            ),
-            BrandShowcase(
-                id = "brand_maral_leather",
-                brandName = "مارال چرم | Maral Leather",
-                tagline = "بوت‌ها و نیم‌بوت‌های زمستانه نبوک و چرم طبیعی با زیره تخصصی ضد لغزش",
-                badge = "پرفروش‌ترین کفش فصل",
-                bannerUrl = "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=800&q=80",
-                discountText = "تخفیف ویژه کالکشن زمستان",
-                bgGradient = listOf(Color(0xFF451A03), Color(0xFF1E293B))
-            ),
-            BrandShowcase(
-                id = "brand_bodyspinner_1",
-                brandName = "بادی اسپینر | Body Spinner",
-                tagline = "کاپشن‌های پافر اورسایز ضدآب و هودی‌های استریت‌استایل برای جوانان شیک‌پوش",
-                badge = "استایل خیابانی مدرن",
-                bannerUrl = "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=800&q=80",
-                discountText = "تخفیف پاییزی تا ۴۰٪",
-                bgGradient = listOf(Color(0xFF1E3A8A), Color(0xFF0284C7))
-            )
+            "پوشاک و مد",
+            "کیف و کفش",
+            "چرم طبیعی",
+            "کت و شلوار",
+            "استریت‌استایل",
+            "کفش طبی و اسپرت"
+        )
+    }
+
+    // Active taste filter mode: "سلیقه من ❤️", "همه فروشگاه‌ها", or specific category name
+    var selectedTasteFilter by remember { mutableStateOf("سلیقه من ❤️") }
+
+    // Filter stores according to customer taste (liked categories) or selected category
+    val displayedStores = remember(allVerifiedStores, selectedTasteFilter, AppState.customerLikedCategories, AppState.currentUser.interests) {
+        when (selectedTasteFilter) {
+            "سلیقه من ❤️" -> {
+                val matches = allVerifiedStores.filter { store ->
+                    AppState.customerLikedCategories.any { likedCat ->
+                        store.storeCategory.contains(likedCat, ignoreCase = true) ||
+                        (store.bio?.contains(likedCat, ignoreCase = true) == true) ||
+                        store.name.contains(likedCat, ignoreCase = true)
+                    } || (AppState.currentUser.interests.isNotBlank() && AppState.currentUser.interests.split("،", " ", "-").any { kw ->
+                        kw.length > 2 && ((store.bio?.contains(kw, ignoreCase = true) == true) || store.storeCategory.contains(kw, ignoreCase = true))
+                    })
+                }
+                if (matches.isNotEmpty()) matches else allVerifiedStores
+            }
+            "همه فروشگاه‌ها" -> allVerifiedStores
+            else -> {
+                val matches = allVerifiedStores.filter { store ->
+                    store.storeCategory.contains(selectedTasteFilter, ignoreCase = true) ||
+                    (store.bio?.contains(selectedTasteFilter, ignoreCase = true) == true) ||
+                    store.name.contains(selectedTasteFilter, ignoreCase = true)
+                }
+                if (matches.isNotEmpty()) matches else allVerifiedStores
+            }
+        }
+    }
+
+    val storeGradients = remember {
+        listOf(
+            listOf(Color(0xFF831843), Color(0xFF1E1B4B)),
+            listOf(Color(0xFF0F172A), Color(0xFF1E293B)),
+            listOf(Color(0xFF701A75), Color(0xFF18181B)),
+            listOf(Color(0xFF451A03), Color(0xFF1E293B)),
+            listOf(Color(0xFF1E3A8A), Color(0xFF0284C7)),
+            listOf(Color(0xFF064E3B), Color(0xFF0F172A)),
+            listOf(Color(0xFF311042), Color(0xFF111827))
         )
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
+        // Section Header: ویترین فروشگاه‌های معتبر
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -926,41 +955,176 @@ fun BrandShowcaseBannerCarousel(onNavigateToStore: (String) -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Verified, contentDescription = null, tint = IndigoPrimary, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(OrangeItCyan.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Verified,
+                        contentDescription = "نماد تیک آبی",
+                        tint = OrangeItCyan,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "ویترین فروشگاه‌های معتبر",
+                        color = SlateText,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "دارای نماد تیک آبی رسمی و تاییدیه اصناف",
+                        color = SlateMuted,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = OrangeItCyan.copy(alpha = 0.12f),
+                border = BorderStroke(0.5.dp, OrangeItCyan.copy(alpha = 0.4f))
+            ) {
                 Text(
-                    text = "ویترین برندهای معتبر پوشاک و چرم",
-                    color = SlateText,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    text = "${displayedStores.size.toPersianNumber()} فروشگاه",
+                    color = OrangeItCyan,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
-            Text(
-                text = "مشاهده شعب",
-                color = IndigoPrimary,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold
-            )
         }
 
+        // Customer Taste & Category Preference Selector (لایک دسته‌های دلخواه)
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // سلیقه من (Personalized Filter based on liked categories)
+            item {
+                val isSelected = selectedTasteFilter == "سلیقه من ❤️"
+                Surface(
+                    onClick = { selectedTasteFilter = "سلیقه من ❤️" },
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isSelected) FuchsiaAccent else GlassBackground,
+                    border = BorderStroke(1.dp, if (isSelected) FuchsiaAccent else GlassBorder)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = null,
+                            tint = if (isSelected) Color.White else FuchsiaAccent,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "سلیقه من",
+                            color = if (isSelected) Color.White else SlateText,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
+            // همه فروشگاه‌ها
+            item {
+                val isSelected = selectedTasteFilter == "همه فروشگاه‌ها"
+                Surface(
+                    onClick = { selectedTasteFilter = "همه فروشگاه‌ها" },
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isSelected) IndigoPrimary else GlassBackground,
+                    border = BorderStroke(1.dp, if (isSelected) IndigoPrimary else GlassBorder)
+                ) {
+                    Text(
+                        text = "همه فروشگاه‌ها",
+                        color = if (isSelected) Color.White else SlateText,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+
+            // Category Chips with Direct Like / Favorite Action (لایک دسته‌های دلخواه)
+            items(availableCategories) { category ->
+                val isSelected = selectedTasteFilter == category
+                val isLiked = AppState.isCategoryLiked(category)
+                Surface(
+                    onClick = { selectedTasteFilter = category },
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isSelected) IndigoPrimary.copy(alpha = 0.85f) else GlassBackground,
+                    border = BorderStroke(1.dp, if (isSelected) IndigoPrimary else if (isLiked) FuchsiaAccent.copy(alpha = 0.5f) else GlassBorder)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(start = 10.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = category,
+                            color = if (isSelected) Color.White else SlateText,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (isSelected || isLiked) FontWeight.Bold else FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        // Heart Icon to like/unlike this category as favorite taste
+                        IconButton(
+                            onClick = { AppState.toggleLikedCategory(category) },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "پسندیدن دسته",
+                                tint = if (isLiked) FuchsiaAccent else SlateMuted,
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Verified Stores Carousel
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            items(showcases) { item ->
+            itemsIndexed(displayedStores) { index, store ->
+                val gradient = storeGradients[index % storeGradients.size]
+                val banner = store.bannerUrl?.ifBlank { null }
+                    ?: store.avatarUrl.ifBlank { null }
+                    ?: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"
+
                 Card(
                     modifier = Modifier
-                        .width(300.dp)
-                        .height(150.dp)
-                        .clickable { onNavigateToStore(item.id) },
+                        .width(310.dp)
+                        .height(158.dp)
+                        .tactileStoreCard(
+                            pressedScale = 0.955f,
+                            defaultElevation = 6.dp,
+                            pressedElevation = 20.dp,
+                            shape = RoundedCornerShape(20.dp),
+                            spotColor = gradient[0],
+                            onClick = { onNavigateToStore(store.id) }
+                        ),
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(1.dp, GlassBorder)
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         // Background Image with dark gradient overlay
                         AsyncImage(
-                            model = item.bannerUrl,
-                            contentDescription = item.brandName,
+                            model = banner,
+                            contentDescription = store.name,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
@@ -971,8 +1135,8 @@ fun BrandShowcaseBannerCarousel(onNavigateToStore: (String) -> Unit) {
                                 .background(
                                     Brush.horizontalGradient(
                                         colors = listOf(
-                                            item.bgGradient[0].copy(alpha = 0.92f),
-                                            item.bgGradient[1].copy(alpha = 0.75f),
+                                            gradient[0].copy(alpha = 0.94f),
+                                            gradient[1].copy(alpha = 0.80f),
                                             Color.Transparent
                                         ),
                                         startX = 0f,
@@ -988,6 +1152,7 @@ fun BrandShowcaseBannerCarousel(onNavigateToStore: (String) -> Unit) {
                                 .padding(14.dp),
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
+                            // Top Row: Verified Badge & Category/Rating
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -995,65 +1160,122 @@ fun BrandShowcaseBannerCarousel(onNavigateToStore: (String) -> Unit) {
                             ) {
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = Color.Black.copy(alpha = 0.5f)
+                                    color = Color.Black.copy(alpha = 0.6f),
+                                    border = BorderStroke(0.5.dp, OrangeItCyan.copy(alpha = 0.6f))
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(Icons.Default.Verified, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(12.dp))
+                                        Icon(
+                                            Icons.Default.Verified,
+                                            contentDescription = "تایید شده رسمی",
+                                            tint = OrangeItCyan,
+                                            modifier = Modifier.size(13.dp)
+                                        )
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text(item.badge, color = Color.White, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), fontWeight = FontWeight.Bold)
+                                        Text(
+                                            text = "فروشگاه رسمی و تاییدشده",
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
                                 }
 
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = EmeraldSuccess
+                                    color = EmeraldSuccess.copy(alpha = 0.85f)
                                 ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "★ ${store.rating.toString().toPersianNumber()}",
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Middle Info: Store Avatar + Name + Category & Bio
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                AsyncImage(
+                                    model = store.avatarUrl,
+                                    contentDescription = store.name,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(CircleShape)
+                                        .border(1.5.dp, Color.White, CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = store.name,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Black,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = item.discountText,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        text = store.storeCategory.ifBlank { store.bio.orEmpty() },
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
 
-                            Column {
-                                Text(
-                                    text = item.brandName,
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Black
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = item.tagline,
-                                    color = Color.White.copy(alpha = 0.85f),
-                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-
+                            // Bottom Row: Location & Enter Store Action
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.align(Alignment.End)
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = "ورود به غرفه برند",
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Icon(
-                                    Icons.Default.ArrowBack, // In RTL arrow points back/left
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(14.dp)
-                                )
+                                val storeCity = store.location?.let { "${it.city}، ${it.neighborhood}" }
+                                    ?: "${store.city}، شعبه مرکزی"
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = EmeraldSuccess,
+                                        modifier = Modifier.size(13.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = storeCity,
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)
+                                    )
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "مشاهده ویترین",
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
                             }
                         }
                     }

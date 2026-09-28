@@ -33,6 +33,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.data.*
+import com.example.ui.components.tactileStoreCard
 import com.example.ui.theme.*
 import com.example.utils.toPersianCurrency
 import com.example.utils.toPersianNumber
@@ -721,7 +722,14 @@ fun FavoriteStoreItem(store: User, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable { onClick() },
+            .tactileStoreCard(
+                pressedScale = 0.965f,
+                defaultElevation = 3.dp,
+                pressedElevation = 14.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = FuchsiaAccent,
+                onClick = onClick
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = GlassBackground),
         border = BorderStroke(1.dp, GlassBorder)

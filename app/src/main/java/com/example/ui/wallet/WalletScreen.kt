@@ -106,14 +106,14 @@ fun WalletScreen(
                         // Title & Icon based on Customer vs Store
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = if (currentMode == UserMode.STORE) Icons.Default.Assignment else Icons.Default.AccountBalanceWallet,
+                                imageVector = if (currentMode == UserMode.STORE) Icons.Default.Assignment else Icons.Default.ShoppingCart,
                                 contentDescription = null,
                                 tint = if (currentMode == UserMode.STORE) FuchsiaAccent else IndigoPrimary,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (currentMode == UserMode.STORE) "سفارشات فروشگاه" else "سبد و کیف پول من",
+                                text = if (currentMode == UserMode.STORE) "سفارشات فروشگاه" else "سبد خرید من",
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = SlateText

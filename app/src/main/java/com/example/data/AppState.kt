@@ -117,6 +117,23 @@ object AppState {
     // Current active user profile
     var currentUser by mutableStateOf(guestUser)
 
+    // Customer liked / favorite categories for personalized store showcase
+    var customerLikedCategories by mutableStateOf(
+        setOf("پوشاک و مد", "کیف و کفش", "چرم طبیعی", "استریت‌استایل")
+    )
+
+    fun toggleLikedCategory(category: String) {
+        customerLikedCategories = if (customerLikedCategories.contains(category)) {
+            customerLikedCategories - category
+        } else {
+            customerLikedCategories + category
+        }
+    }
+
+    fun isCategoryLiked(category: String): Boolean {
+        return customerLikedCategories.contains(category)
+    }
+
     // Dynamic UI Handshake & Remote Theme Configuration from Server
     var uiConfig by mutableStateOf(com.example.network.UiHandshakeResponse())
     var isUiSyncedWithBackend by mutableStateOf(false)

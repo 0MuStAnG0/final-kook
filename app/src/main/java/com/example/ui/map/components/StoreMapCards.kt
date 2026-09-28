@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.User
+import com.example.ui.components.tactileStoreCard
 import com.example.ui.theme.*
 import kotlin.math.*
 
@@ -303,15 +304,22 @@ fun StoreMapCarousel(
         items(stores, key = { it.id }) { store ->
             val isSelected = store.id == selectedStoreId
             Surface(
-                onClick = { onSelectStore(store) },
                 shape = RoundedCornerShape(16.dp),
                 color = if (isSelected) Color(0xFF1E1B4B) else Color(0xFF0F172A).copy(alpha = 0.92f),
                 border = BorderStroke(
                     width = if (isSelected) 1.5.dp else 1.dp,
                     color = if (store.isLive) FuchsiaAccent else if (isSelected) Color.White else GlassBorder
                 ),
-                shadowElevation = if (isSelected) 8.dp else 4.dp,
-                modifier = Modifier.width(180.dp)
+                modifier = Modifier
+                    .width(180.dp)
+                    .tactileStoreCard(
+                        pressedScale = 0.945f,
+                        defaultElevation = if (isSelected) 8.dp else 3.dp,
+                        pressedElevation = 14.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        spotColor = if (store.isLive) FuchsiaAccent else IndigoPrimary,
+                        onClick = { onSelectStore(store) }
+                    )
             ) {
                 Row(
                     modifier = Modifier.padding(10.dp),

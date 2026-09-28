@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Final kook - کوک</string>
     <string name="feed_tab">ویترین</string>
-    <string name="discover_tab">گشت‌و‌گذار</string>
+    <string name="discover_tab">بازارگردی</string>
     <string name="add_tab">افزودن</string>
-    <string name="wallet_tab">کیف پول</string>
+    <string name="wallet_tab">سبد خرید</string>
     <string name="profile_tab">پروفایل</string>
     <string name="map_tab">نقشه</string>
     <string name="orders_tab">سفارشات</string>
