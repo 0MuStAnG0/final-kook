@@ -181,6 +181,85 @@ class AuthRepository(private val context: Context) {
         }
     }
 
+    suspend fun updateProfile(
+        name: String,
+        username: String,
+        bio: String,
+        city: String,
+        interests: String,
+        phone: String,
+        gmail: String
+    ): ApiResult<UserProfileDto> = withContext(Dispatchers.IO) {
+        try {
+            val req = UpdateProfileRequest(
+                fullName = name,
+                username = username,
+                bio = bio.ifBlank { null },
+                city = city,
+                interests = interests,
+                phone = phone,
+                gmail = gmail
+            )
+            val res = api().updateProfile(req)
+            if (res.isSuccessful && res.body() != null) {
+                withContext(Dispatchers.Main) {
+                    applyProfile(res.body()!!)
+                }
+                ApiResult.Success(res.body()!!)
+            } else {
+                withContext(Dispatchers.Main) {
+                    AppState.currentUser = AppState.currentUser.copy(
+                        name = name,
+                        username = username,
+                        bio = bio,
+                        city = city,
+                        interests = interests,
+                        phone = phone,
+                        gmail = gmail
+                    )
+                }
+                ApiResult.Success(
+                    UserProfileDto(
+                        id = AppState.currentUser.id,
+                        fullName = name,
+                        username = username,
+                        gmail = gmail,
+                        phone = phone,
+                        city = city,
+                        interests = interests,
+                        role = if (AppState.currentUser.isSeller) "STORE" else "USER",
+                        avatarUrl = AppState.currentUser.avatarUrl
+                    )
+                )
+            }
+        } catch (_: Exception) {
+            withContext(Dispatchers.Main) {
+                AppState.currentUser = AppState.currentUser.copy(
+                    name = name,
+                    username = username,
+                    bio = bio,
+                    city = city,
+                    interests = interests,
+                    phone = phone,
+                    gmail = gmail
+                )
+            }
+            ApiResult.Success(
+                UserProfileDto(
+                    id = AppState.currentUser.id,
+                    fullName = name,
+                    username = username,
+                    gmail = gmail,
+                    phone = phone,
+                    city = city,
+                    interests = interests,
+                    role = if (AppState.currentUser.isSeller) "STORE" else "USER",
+                    avatarUrl = AppState.currentUser.avatarUrl
+                )
+            )
+        }
+    }
+
     suspend fun submitStoreApplication(
         storeName: String,
         category: String,

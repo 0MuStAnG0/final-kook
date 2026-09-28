@@ -24,6 +24,7 @@ import coil.compose.AsyncImage
 import com.example.data.AccountType
 import com.example.data.AppState
 import com.example.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +41,10 @@ fun EditProfileScreen(onBack: () -> Unit) {
     var gmail by remember { mutableStateOf(user.gmail) }
     var address by remember { mutableStateOf(user.location?.address ?: "تهران، خیابان ولیعصر") }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val authRepository = remember { com.example.network.AuthRepository(context) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -51,15 +56,17 @@ fun EditProfileScreen(onBack: () -> Unit) {
                 },
                 actions = {
                     TextButton(onClick = {
-                        AppState.currentUser = AppState.currentUser.copy(
-                            name = name,
-                            username = username,
-                            bio = bio,
-                            city = city,
-                            interests = interests,
-                            phone = phone,
-                            gmail = gmail
-                        )
+                        coroutineScope.launch {
+                            authRepository.updateProfile(
+                                name = name,
+                                username = username,
+                                bio = bio,
+                                city = city,
+                                interests = interests,
+                                phone = phone,
+                                gmail = gmail
+                            )
+                        }
                         onBack()
                     }) {
                         Text("ذخیره", color = EmeraldSuccess, fontWeight = FontWeight.Bold, fontSize = 15.sp)

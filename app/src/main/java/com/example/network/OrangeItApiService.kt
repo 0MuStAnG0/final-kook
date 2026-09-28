@@ -67,6 +67,16 @@ data class UserProfileDto(
     val storeStatus: String? = null
 )
 
+data class UpdateProfileRequest(
+    val fullName: String,
+    val username: String,
+    val bio: String? = null,
+    val city: String,
+    val interests: String,
+    val phone: String,
+    val gmail: String
+)
+
 data class ProductDto(
     val id: String = "",
     val title: String = "",
@@ -178,6 +188,9 @@ interface OrangeItApiService {
 
     @GET("api/auth/me")
     suspend fun getCurrentUser(): Response<UserProfileDto>
+
+    @PUT("api/auth/me")
+    suspend fun updateProfile(@Body req: UpdateProfileRequest): Response<UserProfileDto>
 
     @POST("api/store/apply")
     suspend fun applyForStore(@Body req: StoreApplicationRequest): Response<StoreApplicationResponse>

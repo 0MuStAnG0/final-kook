@@ -244,7 +244,10 @@ fun DiscoverScreen(onNavigateToStore: (String) -> Unit = {}) {
                 // Active Location & Category Indicator (نوار وضعیت فیلتر شهر و دسته‌بندی)
                 item {
                     // Premium Fashion & Footwear Brand Showcase Carousel
-                    BrandShowcaseBannerCarousel(onNavigateToStore = onNavigateToStore)
+                    BrandShowcaseBannerCarousel(
+                        stores = liveStores,
+                        onNavigateToStore = onNavigateToStore
+                    )
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Row(
@@ -877,11 +880,17 @@ fun HotPostItem(post: Post) {
 }
 
 @Composable
-fun BrandShowcaseBannerCarousel(onNavigateToStore: (String) -> Unit) {
-    // Collect all stores with verified badge (تیک آبی)
-    val allVerifiedStores = remember(AppState.currentUser) {
+fun BrandShowcaseBannerCarousel(
+    stores: List<User> = emptyList(),
+    onNavigateToStore: (String) -> Unit
+) {
+    // Collect all stores with verified badge (تیک آبی) - combining remote server stores and seed stores
+    val allVerifiedStores = remember(AppState.currentUser, stores) {
         val storeMap = linkedMapOf<String, User>()
-        MockData.users.filter { it.isVerified }.forEach { storeMap[it.id] = it }
+        // Add remote verified stores from backend server
+        stores.filter { it.isVerified }.forEach { storeMap[it.id] = it }
+        // Add seeded verified stores
+        MockData.users.filter { it.isVerified }.forEach { storeMap.putIfAbsent(it.id, it) }
         MockData.posts.map { it.author }.filter { it.isVerified }.forEach { author ->
             storeMap.putIfAbsent(author.id, author)
         }
