@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.data.AccountType
 import com.example.data.AppState
+import com.example.data.CartItem
 import com.example.data.MockData
 import com.example.data.OrderStatus
 import com.example.data.Post
@@ -11,11 +12,15 @@ import com.example.data.Product
 import com.example.data.StoreLocation
 import com.example.data.StoreOrder
 import com.example.data.StoreOrderItem
+import com.example.data.TryOnBooking
 import com.example.data.User
 import com.example.network.ApiClient
 import com.example.network.CreateOrderRequest
 import com.example.network.OrderDto
+import com.example.network.OrderItemDto
 import com.example.network.ProductDto
+import com.example.network.TryOnBookingRequest
+import com.example.network.UpdateOrderStatusRequest
 import com.example.network.UserProfileDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -114,21 +119,36 @@ class CatalogRepository(private val context: Context) {
         product: Product,
         storeName: String,
         quantity: Int = 1,
+        selectedColor: String? = null,
+        selectedSize: String? = null,
         customerName: String = AppState.currentUser.name,
         customerPhone: String = AppState.currentUser.phone.ifBlank { "09120000000" },
         customerCity: String = AppState.currentUser.city.ifBlank { "تهران" },
         customerAddress: String = AppState.currentUser.location?.address ?: "تهران"
     ): Result<StoreOrder> = withContext(Dispatchers.IO) {
         try {
+            val normalizedPhone = normalizePhone(customerPhone).ifBlank { "09120000000" }
+            val lineItem = OrderItemDto(
+                productId = product.id,
+                title = product.title,
+                quantity = quantity,
+                unitPrice = product.price,
+                selectedColor = selectedColor,
+                selectedSize = selectedSize,
+                imageUrl = product.imageUrl
+            )
             val req = CreateOrderRequest(
                 productId = product.id,
                 quantity = quantity,
                 customerName = customerName,
-                customerPhone = customerPhone.filter { it.isDigit() }.ifBlank { "09120000000" },
+                customerPhone = normalizedPhone,
                 customerCity = customerCity,
                 customerAddress = customerAddress,
                 totalAmount = product.price * quantity,
-                storeName = storeName
+                storeName = storeName,
+                selectedColor = selectedColor,
+                selectedSize = selectedSize,
+                items = listOf(lineItem)
             )
             val response = api.createOrder(req)
             if (response.isSuccessful && response.body() != null) {
@@ -140,6 +160,104 @@ class CatalogRepository(private val context: Context) {
             }
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    suspend fun createCartOrder(
+        cartItems: List<CartItem>,
+        customerName: String = AppState.currentUser.name,
+        customerPhone: String = AppState.currentUser.phone.ifBlank { "09120000000" },
+        customerCity: String = AppState.currentUser.city.ifBlank { "تهران" },
+        customerAddress: String = AppState.currentUser.location?.address ?: "تهران، میدان تجریش، پلاک ۴۲"
+    ): Result<StoreOrder> = withContext(Dispatchers.IO) {
+        if (cartItems.isEmpty()) {
+            return@withContext Result.failure(IllegalArgumentException("سبد خرید خالی است"))
+        }
+        try {
+            val first = cartItems.first()
+            val total = cartItems.sumOf { it.product.price * it.quantity }
+            val normalizedPhone = normalizePhone(customerPhone).ifBlank { "09120000000" }
+            val lineItems = cartItems.map {
+                OrderItemDto(
+                    productId = it.product.id,
+                    title = it.product.title,
+                    quantity = it.quantity,
+                    unitPrice = it.product.price,
+                    selectedColor = it.selectedColor,
+                    selectedSize = it.selectedSize,
+                    imageUrl = it.product.imageUrl
+                )
+            }
+            val req = CreateOrderRequest(
+                productId = first.product.id,
+                quantity = cartItems.sumOf { it.quantity },
+                customerName = customerName,
+                customerPhone = normalizedPhone,
+                customerCity = customerCity,
+                customerAddress = customerAddress,
+                totalAmount = total,
+                storeName = first.storeName,
+                selectedColor = first.selectedColor,
+                selectedSize = first.selectedSize,
+                items = lineItems
+            )
+            val response = api.createOrder(req)
+            if (response.isSuccessful && response.body() != null) {
+                val mapped = mapOrder(response.body()!!, redactForeignPii = false).copy(
+                    items = cartItems.map {
+                        StoreOrderItem(
+                            product = it.product,
+                            quantity = it.quantity,
+                            selectedColor = it.selectedColor,
+                            selectedSize = it.selectedSize,
+                            unitPrice = it.product.price
+                        )
+                    },
+                    totalAmount = total,
+                    customerId = response.body()!!.customerId ?: AppState.currentUser.id
+                )
+                Result.success(mapped)
+            } else {
+                Result.failure(IllegalStateException("ثبت سفارش سبد خرید ناموفق (${response.code()})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateOrderStatus(
+        orderId: String,
+        newStatus: OrderStatus,
+        trackingCode: String? = null
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val response = api.updateOrderStatus(
+                orderId = orderId,
+                req = UpdateOrderStatusRequest(status = newStatus.name, trackingCode = trackingCode)
+            )
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.d(TAG, "updateOrderStatus fallback: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun syncTryOnBooking(booking: TryOnBooking): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val response = api.createTryOnBooking(
+                TryOnBookingRequest(
+                    id = booking.id,
+                    storeName = booking.storeName,
+                    productTitle = booking.productTitle,
+                    scheduledDate = booking.scheduledDate,
+                    scheduledTime = booking.scheduledTime,
+                    bookingCode = booking.bookingCode,
+                    storeAddress = booking.storeAddress
+                )
+            )
+            response.isSuccessful
+        } catch (_: Exception) {
+            false
         }
     }
 
@@ -239,7 +357,8 @@ class CatalogRepository(private val context: Context) {
     companion object {
         private const val TAG = "CatalogRepository"
 
-        fun normalizePhone(raw: String): String = raw.filter { it.isDigit() }
+        fun normalizePhone(raw: String): String =
+            com.example.utils.ValidationUtils.normalizeDigits(raw).filter { it.isDigit() }
 
         fun isOwnedByCustomer(
             dto: OrderDto,
@@ -247,14 +366,14 @@ class CatalogRepository(private val context: Context) {
             userName: String,
             phoneDigits: String
         ): Boolean {
+            if (userId.isBlank() || userId == "user_guest") return false
             val cid = dto.customerId?.trim().orEmpty()
-            if (cid.isNotEmpty() && cid == userId) return true
-            // Secondary heuristics only when server omits customer_id
-            if (cid.isEmpty()) {
-                if (userName.isNotBlank() && dto.customerName.equals(userName, ignoreCase = true)) return true
-                val orderPhone = normalizePhone(dto.customerPhone)
-                if (phoneDigits.length >= 10 && orderPhone == phoneDigits) return true
+            if (cid.isNotEmpty()) {
+                return cid == userId
             }
+            // Only fall back to verified normalized phone number (never match by display name to prevent PII leak)
+            val orderPhone = normalizePhone(dto.customerPhone)
+            if (phoneDigits.length >= 10 && orderPhone == phoneDigits) return true
             return false
         }
 

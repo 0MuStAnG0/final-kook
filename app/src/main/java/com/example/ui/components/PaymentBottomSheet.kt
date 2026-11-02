@@ -514,6 +514,8 @@ fun PaymentBottomSheet(
                                             product = product,
                                             storeName = post.author.name,
                                             quantity = quantity,
+                                            selectedColor = selectedColor,
+                                            selectedSize = selectedSize,
                                             customerAddress = AppState.currentUser.location?.address
                                                 ?: "تهران، آدرس ثبت‌شده کاربر"
                                         )

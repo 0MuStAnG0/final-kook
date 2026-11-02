@@ -95,7 +95,11 @@ fun FeedScreen(
     val isScrolling = listState.isScrollInProgress
 
     val exoPlayer = remember {
-        com.example.utils.PlayerManager.getSharedPlayer(context)
+        if (com.example.utils.PlayerManager.isCodec2HardwareSupported()) {
+            com.example.utils.PlayerManager.getSharedPlayer(context)
+        } else {
+            null
+        }
     }
     
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current

@@ -18,7 +18,7 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     _accessToken = prefs.getString('access_token');
     _refreshToken = prefs.getString('refresh_token');
-    baseUrl = prefs.getString('custom_backend_url') ?? defaultBaseUrl;
+    baseUrl = defaultBaseUrl;
   }
 
   Future<void> saveTokens(String access, String refresh) async {
@@ -42,14 +42,15 @@ class ApiService {
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    if (_accessToken != null) 'Authorization': 'Bearer $_accessToken',
+    if (_accessToken != null && _accessToken!.isNotEmpty)
+      'Authorization': 'Bearer $_accessToken',
   };
 
   // Test server connectivity / handshake
   Future<bool> testConnection() async {
     try {
       final response = await http
-          .get(Uri.parse('${baseUrl}health'), headers: _headers)
+          .get(Uri.parse('${baseUrl}api/health'), headers: _headers)
           .timeout(const Duration(seconds: 4));
       return response.statusCode == 200;
     } catch (_) {
@@ -60,11 +61,13 @@ class ApiService {
   // Auth: Login
   Future<Map<String, dynamic>> login(String identifier, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('${baseUrl}api/auth/login'),
-        headers: _headers,
-        body: jsonEncode({'identifier': identifier, 'password': password}),
-      ).timeout(const Duration(seconds: 6));
+      final response = await http
+          .post(
+            Uri.parse('${baseUrl}api/auth/login'),
+            headers: _headers,
+            body: jsonEncode({'identifier': identifier, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 6));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -72,7 +75,7 @@ class ApiService {
         return {'success': true, 'data': data};
       }
       return {'success': false, 'error': 'خطا در ورود به حساب'};
-    } catch (e) {
+    } catch (_) {
       return {'success': false, 'error': 'عدم برقراری ارتباط با سرور'};
     }
   }
@@ -85,16 +88,18 @@ class ApiService {
     required String password,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('${baseUrl}api/auth/register'),
-        headers: _headers,
-        body: jsonEncode({
-          'fullName': fullName,
-          'phone': phone,
-          'city': city,
-          'password': password,
-        }),
-      ).timeout(const Duration(seconds: 6));
+      final response = await http
+          .post(
+            Uri.parse('${baseUrl}api/auth/register'),
+            headers: _headers,
+            body: jsonEncode({
+              'fullName': fullName,
+              'phone': phone,
+              'city': city,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -104,26 +109,183 @@ class ApiService {
         return {'success': true, 'data': data};
       }
       return {'success': false, 'error': 'خطا در ثبت نام'};
-    } catch (e) {
+    } catch (_) {
       return {'success': false, 'error': 'عدم برقراری ارتباط با سرور'};
+    }
+  }
+
+  // Auth: Update Profile
+  Future<Map<String, dynamic>> updateProfile({
+    required String fullName,
+    required String username,
+    required String bio,
+    required String city,
+    required String interests,
+    required String phone,
+    required String gmail,
+  }) async {
+    try {
+      final response = await http
+          .put(
+            Uri.parse('${baseUrl}api/auth/me'),
+            headers: _headers,
+            body: jsonEncode({
+              'fullName': fullName,
+              'username': username,
+              'bio': bio,
+              'city': city,
+              'interests': interests,
+              'phone': phone,
+              'gmail': gmail,
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': jsonDecode(response.body)};
+      }
+      return {'success': false, 'error': 'به‌روزرسانی پروفایل ناموفق بود'};
+    } catch (_) {
+      return {'success': false, 'error': 'عدم دسترسی به سرور'};
     }
   }
 
   // Store Application
   Future<Map<String, dynamic>> submitStoreApplication(StoreApplication app) async {
     try {
-      final response = await http.post(
-        Uri.parse('${baseUrl}api/store/apply'),
-        headers: _headers,
-        body: jsonEncode(app.toJson()),
-      ).timeout(const Duration(seconds: 6));
+      final response = await http
+          .post(
+            Uri.parse('${baseUrl}api/store/apply'),
+            headers: _headers,
+            body: jsonEncode(app.toJson()),
+          )
+          .timeout(const Duration(seconds: 6));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'data': jsonDecode(response.body)};
       }
-      return {'success': true, 'data': app.toJson()}; // Graceful fallback
+      return {'success': true, 'data': app.toJson()};
     } catch (_) {
-      return {'success': true, 'data': app.toJson()}; // Offline/Local fallback
+      return {'success': true, 'data': app.toJson()};
     }
+  }
+
+  // Posts & Reels Feed
+  Future<List<dynamic>> getPosts() async {
+    try {
+      final response = await http
+          .get(Uri.parse('${baseUrl}api/posts'), headers: _headers)
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> toggleLikePost(String postId) async {
+    try {
+      final response = await http
+          .post(Uri.parse('${baseUrl}api/posts/$postId/like'), headers: _headers)
+          .timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> toggleSavePost(String postId) async {
+    try {
+      final response = await http
+          .post(Uri.parse('${baseUrl}api/posts/$postId/save'), headers: _headers)
+          .timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Stores & Catalog
+  Future<List<dynamic>> getStores() async {
+    try {
+      final response = await http
+          .get(Uri.parse('${baseUrl}api/stores'), headers: _headers)
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> toggleFollowStore(String storeId) async {
+    try {
+      final response = await http
+          .post(Uri.parse('${baseUrl}api/stores/$storeId/follow'), headers: _headers)
+          .timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Orders & Multi-Item Checkout
+  Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderPayload) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${baseUrl}api/orders'),
+            headers: _headers,
+            body: jsonEncode(orderPayload),
+          )
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'data': jsonDecode(response.body)};
+      }
+      return {'success': false, 'error': 'ثبت سفارش ناموفق بود'};
+    } catch (_) {
+      return {'success': false, 'error': 'خطای شبکه در ثبت سفارش'};
+    }
+  }
+
+  // Chat & Direct Messaging
+  Future<List<dynamic>> getChats() async {
+    try {
+      final response = await http
+          .get(Uri.parse('${baseUrl}api/chat'), headers: _headers)
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<Map<String, dynamic>?> sendChatMessage(
+    String chatId, {
+    required String text,
+    String type = 'TEXT',
+    String? productId,
+    String? invoiceId,
+    int? amount,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${baseUrl}api/chat/$chatId/messages'),
+            headers: _headers,
+            body: jsonEncode({
+              'text': text,
+              'type': type,
+              if (productId != null) 'productId': productId,
+              if (invoiceId != null) 'invoiceId': invoiceId,
+              if (amount != null) 'amount': amount,
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return null;
   }
 }

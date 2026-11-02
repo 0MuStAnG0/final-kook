@@ -18,10 +18,10 @@ data class InvoiceEntity(
     val isHygieneProtected: Boolean = false,
     val autoReleaseHoursRemaining: Int = 48,
     val exchangeRequestReason: String? = null,
-    val customerAddress: String = "تهران، میدان ونک، خ خدامی، پلاک ۲۴، واحد ۳",
-    val customerName: String = "مریم احمدی",
-    val customerPhone: String = "۰۹۱۲۹۸۷۶۵۴۳",
-    val postalCode: String = "۱۹۹۴۵۶۷۱۲۰",
+    val customerAddress: String = com.example.data.AppState.currentUser.location?.address ?: "تهران، میدان تجریش، پلاک ۴۲",
+    val customerName: String = com.example.data.AppState.currentUser.name,
+    val customerPhone: String = com.example.data.AppState.currentUser.phone.ifBlank { "۰۹۱۲۳۴۵۶۷۸۹" },
+    val postalCode: String = com.example.data.AppState.currentUser.location?.postalCode ?: "۱۹۹۴۵۶۷۱۲۰",
     val digitalSignature: String? = null, // Cryptographic verification token
     val createdAtTimestamp: Long = System.currentTimeMillis()
 )
@@ -64,4 +64,20 @@ data class CartItemEntity(
     val isSurpriseGift: Boolean = false,
     val addedAtTimestamp: Long = System.currentTimeMillis()
 )
+
+@Entity(tableName = "try_on_bookings")
+data class TryOnBookingEntity(
+    @PrimaryKey val id: String,
+    val storeName: String,
+    val storeAvatar: String,
+    val productTitle: String,
+    val productImage: String,
+    val scheduledDate: String,
+    val scheduledTime: String,
+    val bookingCode: String,
+    val storeAddress: String,
+    val status: String,
+    val createdAtTimestamp: Long = System.currentTimeMillis()
+)
+
 

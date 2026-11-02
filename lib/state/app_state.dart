@@ -89,6 +89,20 @@ class AppStateManager extends ChangeNotifier {
   List<MarketOrder> orders = [];
   List<TryOnBooking> tryOnBookings = [];
   List<ChatMessage> chatMessages = [];
+  List<String> customerLikedCategories = [
+    'پوشاک و مد',
+    'کیف، کفش و چرم طبیعی',
+    'کفش و کتانی',
+  ];
+
+  void toggleTasteCategory(String category) {
+    if (customerLikedCategories.contains(category)) {
+      customerLikedCategories.remove(category);
+    } else {
+      customerLikedCategories.add(category);
+    }
+    notifyListeners();
+  }
 
   AppStateManager() {
     currentUser = defaultCustomer;
@@ -120,7 +134,7 @@ class AppStateManager extends ChangeNotifier {
         sharesCount: 3400,
         savesCount: 5200,
         imageUrl: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80',
-        videoUrl: 'https://aspb3.cdn.asset.aparat.com/aparat-video/792fd47f408182d4c238bc477d7eedd51546393.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjMwNzlkNDAwMWQ2YjdjOWZmZWUxYzFkOTEyMWUzYTE4IiwiZXhwIjoxNzkwODEzMjgwLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9._XgAs9cUJbSskecPvWYRPAZO_qmr2QCzyL1qHCOjRGU',
+        videoUrl: 'https://storage.googleapis.com/exoplayer-test-media-0/shortform_1.mp4',
         audioTrack: 'موسیقی رسمی تیزر نوین چرم (بهرام رادان)',
         product: Product(
           id: 'prod_novin_jacket',
@@ -154,7 +168,7 @@ class AppStateManager extends ChangeNotifier {
         sharesCount: 4200,
         savesCount: 6800,
         imageUrl: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80',
-        videoUrl: 'https://aspb12.cdn.asset.aparat.com/aparat-video/b80a7d31efd23e0a81dee144352eb8773339802-576p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjZiNTY4ZDYwMTVmZGZhZmFmYTEwYWQxMjg3ZDZjYzhlIiwiZXhwIjoxNzkwODEzNjgxLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.WkPMV9UrevnROew4NJ2ynU1NWYbkyhL7Ad-A4X7o-eE',
+        videoUrl: 'https://storage.googleapis.com/exoplayer-test-media-0/shortform_2.mp4',
         audioTrack: 'موسیقی سمفونیک تیزر هاکوپیان',
         product: Product(
           id: 'prod_hakopian_suit',
@@ -188,7 +202,7 @@ class AppStateManager extends ChangeNotifier {
         sharesCount: 6100,
         savesCount: 8900,
         imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80',
-        videoUrl: 'https://aspb2.cdn.asset.aparat.com/aparat-video/538437c229faa347b6af34423ca000c17346904-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImZmNDFiZjNiYmJmOGE3YjEzNjk0ZmM1ZDRlNGJkNjZiIiwiZXhwIjoxNzkwODEzMjgxLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.3PT5lvXABszAMREc3hKrOQA6I_gNz2HD-mmGGLIuSOs',
+        videoUrl: 'https://storage.googleapis.com/exoplayer-test-media-0/shortform_3.mp4',
         audioTrack: 'تیزر معرفی محصولات گروه چرم درسا',
         product: Product(
           id: 'prod_dorsa_bag',
@@ -222,7 +236,7 @@ class AppStateManager extends ChangeNotifier {
         sharesCount: 1800,
         savesCount: 3900,
         imageUrl: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=800&q=80',
-        videoUrl: 'https://aspb12.cdn.asset.aparat.com/aparat-video/46d92e4ab5c552061683c6770fa0c91824273676-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImY3YmE5ZjBjOTkwM2ZkMzdlMzJmMDc2M2YyNDgxYjVkIiwiZXhwIjoxNzkwODEzMjk1LCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.fZkf_J3XaVQjnq3UaAvWjkm3Z_tZwZVVgd7xsFUCj9M',
+        videoUrl: 'https://storage.googleapis.com/exoplayer-test-media-0/shortform_4.mp4',
         audioTrack: 'تیزر رسمی جشنواره مارال چرم',
         product: Product(
           id: 'prod_maral_boot',
@@ -256,7 +270,7 @@ class AppStateManager extends ChangeNotifier {
         sharesCount: 2100,
         savesCount: 4100,
         imageUrl: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=800&q=80',
-        videoUrl: 'https://aspb2.cdn.asset.aparat.com/aparat-video/9c28b21dd8dfc406ce15e1e76a33b8064271147-720p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjljMjY5ZjJkMGQ2NzU0MWRkOGM5M2M4MTM2MzNhMGYzIiwiZXhwIjoxNzkwODEzMjgyLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.s8-NjocAY7zhNbFkd6A0cgcCl5zwuR1ZQqOO2noeLSQ',
+        videoUrl: 'https://storage.googleapis.com/exoplayer-test-media-0/shortform_5.mp4',
         audioTrack: 'تیزر تلویزیونی رسمی کفش ملی',
         product: Product(
           id: 'prod_melli_oxford',
@@ -290,7 +304,7 @@ class AppStateManager extends ChangeNotifier {
         sharesCount: 3800,
         savesCount: 5900,
         imageUrl: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=800&q=80',
-        videoUrl: 'https://caspian25.cdn.asset.aparat.com/aparat-video/0e4bc1d6a27c09813fe647af2631579a67225294-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImY3ZDBkYzYxYTk5NTFhZWIyOThmYzMzYjEyMzFkYTA4IiwiZXhwIjoxNzkwODEzMjg4LCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.30jMAf5YuCEP69mA1pxOxvEi1fmX2EvBmczWWR00GJU',
+        videoUrl: 'https://storage.googleapis.com/exoplayer-test-media-0/shortform_6.mp4',
         audioTrack: 'تیزر رسمی کالکشن پاییز زمستان بادی اسپینر',
         product: Product(
           id: 'prod_bodyspinner_puffer',
@@ -324,7 +338,7 @@ class AppStateManager extends ChangeNotifier {
         sharesCount: 4950,
         savesCount: 6800,
         imageUrl: 'https://images.unsplash.com/photo-1544923246-77307dd654cb?auto=format&fit=crop&w=800&q=80',
-        videoUrl: 'https://aspb21.cdn.asset.aparat.com/aparat-video/7204eca46a062bc7ab4108c7d11055f428084822-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImNiYWY4MTdiZmY0NTYxNDc0OWNlNmQ4NDIwMTE0M2Q4IiwiZXhwIjoxNzkwODEzMjgxLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.EzFwhfAR-55tYfXBrL5WVnzWM7FZaMp_GBdafv7xly8',
+        videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
         audioTrack: 'موسیقی تبلیغاتی رسمی ال سی من (بذار تنت انتخاب کنه)',
         product: Product(
           id: 'prod_lcman_coat',
@@ -433,6 +447,7 @@ class AppStateManager extends ChangeNotifier {
         likesCount: isLiked ? post.likesCount + 1 : post.likesCount - 1,
       );
       notifyListeners();
+      api.toggleLikePost(postId);
     }
   }
 
@@ -446,6 +461,7 @@ class AppStateManager extends ChangeNotifier {
         savesCount: isSaved ? post.savesCount + 1 : post.savesCount - 1,
       );
       notifyListeners();
+      api.toggleSavePost(postId);
     }
   }
 

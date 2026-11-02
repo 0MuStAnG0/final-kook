@@ -40,34 +40,49 @@ fun LiveShoppingOverlay(user: User, onClose: () -> Unit) {
     var showBuySuccessDialog by remember { mutableStateOf(false) }
     val storeDisplayName = user.storeApplication?.storeName ?: user.name.ifBlank { "بوتیک کوک" }
 
-    val liveProduct = remember {
-        com.example.data.Product(
-            id = "live_prod_nike",
-            title = "کتونی نایک ایر لایو",
-            price = 2500000L,
-            oldPrice = 3100000L,
-            imageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80"
+    val matchedPost = remember(user.id, user.username) {
+        com.example.data.MockData.posts.firstOrNull {
+            it.author.id == user.id || it.author.username == user.username
+        }
+    }
+
+    val liveProduct = remember(user.id, matchedPost) {
+        matchedPost?.product ?: com.example.data.Product(
+            id = "live_prod_${user.id}",
+            title = "کالکشن ویژه لایو $storeDisplayName",
+            price = 3850000L,
+            oldPrice = 4600000L,
+            category = user.storeCategory,
+            imageUrl = user.bannerUrl ?: user.avatarUrl
         )
     }
 
-    LaunchedEffect(Unit) {
-        val dummyComments = listOf(
-            "عالیه!", "قیمتش چنده؟", "سایز لارج هم داره؟", "ارسال به شهرستان دارید؟",
-            "چه رنگایی داره؟", "من یکی میخوام", "لطفا پیاممو جواب بدید", "چقدر خوشگله 😍"
+    val liveStreamBackdrop = matchedPost?.imageUrl
+        ?: user.bannerUrl
+        ?: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80"
+
+    LaunchedEffect(user.id) {
+        val storeComments = listOf(
+            "کیفیت دوخت ${liveProduct.title} عالیه!",
+            "سایزبندی ${liveProduct.availableSizes.joinToString("/")} موجوده؟",
+            "ارسال فوری به شهرستان هم دارید؟",
+            "رنگ ${liveProduct.availableColors.firstOrNull() ?: "مشکی"} تن‌خورش فوق‌العاده‌ست 😍",
+            "امکان رزرو پرو حضوری در شعبه ${user.location?.neighborhood ?: "مرکزی"} هست؟",
+            "تخفیف لایو تا کی فعاله؟"
         )
-        delay(1000)
+        delay(800)
         showProductPopup = true
         while (true) {
-            delay((1500..3000).random().toLong())
-            val newComment = dummyComments.random()
+            delay((1800..3200).random().toLong())
+            val newComment = storeComments.random()
             comments = (comments + newComment).takeLast(10)
         }
     }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        // Mock Live Video
+        // Store Live Stream Backdrop
         AsyncImage(
-            model = "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
+            model = liveStreamBackdrop,
             contentDescription = "Live Video",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()

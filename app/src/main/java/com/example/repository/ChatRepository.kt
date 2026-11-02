@@ -72,9 +72,27 @@ class ChatRepository(private val context: Context) {
         }
     }
 
-    suspend fun sendMessage(chatId: String, text: String): ChatMessage? = withContext(Dispatchers.IO) {
+    suspend fun sendMessage(
+        chatId: String,
+        text: String,
+        type: String = "TEXT",
+        productId: String? = null,
+        invoiceId: String? = null,
+        amount: Long? = null,
+        status: String? = null
+    ): ChatMessage? = withContext(Dispatchers.IO) {
         try {
-            val response = api.sendChatMessage(chatId, SendChatMessageRequest(text = text))
+            val response = api.sendChatMessage(
+                chatId,
+                SendChatMessageRequest(
+                    text = text,
+                    type = type,
+                    productId = productId,
+                    invoiceId = invoiceId,
+                    amount = amount,
+                    status = status
+                )
+            )
             if (response.isSuccessful && response.body() != null) {
                 mapMessage(response.body()!!)
             } else {
@@ -92,23 +110,29 @@ class ChatRepository(private val context: Context) {
     }
 
     /**
-     * Resolve an existing thread with [peerUserId]. Live server has no
-     * POST /api/chat create route (404); until that exists we open local-only.
+     * Resolve an existing thread with [peerUserId] or create one on backend.
      */
     suspend fun openOrCreateChat(peerUserId: String): ChatOpenResult {
         findChatIdForUser(peerUserId)?.let { return ChatOpenResult.Ready(it) }
-        // Probe create variants — all currently 404 on production.
         val created = tryCreateChat(peerUserId)
         if (created != null) return ChatOpenResult.Ready(created)
         return ChatOpenResult.LocalOnly(
-            "ساخت گفتگوی جدید روی سرور هنوز فعال نیست. پیام‌ها فقط روی این دستگاه نگه داشته می‌شوند."
+            "ساخت گفتگوی جدید روی سرور در دسترس نیست؛ پیام‌ها در حافظه امن دستگاه نگهداری می‌شوند."
         )
     }
 
     private suspend fun tryCreateChat(peerUserId: String): String? = withContext(Dispatchers.IO) {
-        // Reserved for when backend adds POST /api/chat. Soft-fail for now.
-        Log.d(TAG, "createChat unavailable for peer=$peerUserId")
-        null
+        try {
+            val response = api.createChat(com.example.network.CreateChatRequest(peerUserId = peerUserId))
+            if (response.isSuccessful && response.body() != null && response.body()!!.id.isNotBlank()) {
+                response.body()!!.id
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "createChat fallback for peer=$peerUserId: ${e.message}")
+            null
+        }
     }
 
     private fun involvesCurrentUser(dto: ChatDto, me: String): Boolean {

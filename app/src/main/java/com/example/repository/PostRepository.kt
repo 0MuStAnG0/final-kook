@@ -20,6 +20,8 @@ interface PostRepository {
         imageUrl: String?,
         location: StoreLocation
     ): Post?
+    suspend fun toggleLike(postId: String): Boolean = false
+    suspend fun toggleSave(postId: String): Boolean = false
     fun isConnectedToLiveServer(): Boolean
 }
 
@@ -28,6 +30,22 @@ class NetworkPostRepository(private val context: Context) : PostRepository {
     private var isLiveConnected = false
 
     override fun isConnectedToLiveServer(): Boolean = isLiveConnected
+
+    override suspend fun toggleLike(postId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            apiService.toggleLikePost(postId).isSuccessful
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    override suspend fun toggleSave(postId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            apiService.toggleSavePost(postId).isSuccessful
+        } catch (_: Exception) {
+            false
+        }
+    }
 
     override suspend fun getPosts(): List<Post> = withContext(Dispatchers.IO) {
         try {
@@ -126,7 +144,7 @@ class NetworkPostRepository(private val context: Context) : PostRepository {
             isSaved = dto.isSaved,
             audioTrack = dto.audioTrack ?: "آهنگ رسمی کوک",
             imageUrl = dto.imageUrl.ifBlank { "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1080&q=80" },
-            videoUrl = dto.videoUrl
+            videoUrl = com.example.utils.PlayerManager.resolvePlayableVideoUrl(dto.videoUrl, dto.id)
         )
     }
 }

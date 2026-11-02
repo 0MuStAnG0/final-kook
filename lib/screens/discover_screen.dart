@@ -258,132 +258,202 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
+  bool _filterByCustomerTaste = false;
+
   Widget _buildBrandShowcaseBanner() {
+    final state = Provider.of<AppStateManager>(context);
     final showcaseItems = [
       {
         'brand': 'نوین چرم | Novin Leather',
-        'desc': 'جشنواره خرید مستقیم کاپشن، کیف و کفش چرم طبیعی صادراتی',
-        'badge': 'تخفیف ۳۵٪',
+        'category': 'کیف، کفش و چرم طبیعی',
+        'desc': 'تولیدکننده پیشرو کیف، کفش، کاپشن و کمربند چرم ۱۰۰٪ طبیعی صادراتی',
+        'badge': 'فروشگاه معتبر',
         'img': 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=600&q=80',
         'color': const Color(0xFF831843),
       },
       {
         'brand': 'هاکوپیان | HAKOPIAN',
-        'desc': 'هنر اصیل خیاطی، کت و شلوارهای پشمی ایتالیایی و پرو حضوری',
-        'badge': '۱۰۰٪ پشم خالص',
+        'category': 'پوشاک و مد',
+        'desc': 'هنر اصیل خیاطی صنعتی، کت و شلوارهای پشمی ایتالیایی و پرو حضوری',
+        'badge': 'فروشگاه معتبر',
         'img': 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=600&q=80',
         'color': const Color(0xFF0F172A),
       },
       {
         'brand': 'چرم درسا | Dorsa Group',
+        'category': 'کیف، کفش و چرم طبیعی',
         'desc': 'کلکسیون لوکس کیف‌های مجلسی سنگی و کفش‌های چرم خاص‌پسند',
-        'badge': 'کالکشن دیبا',
+        'badge': 'فروشگاه معتبر',
         'img': 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80',
         'color': const Color(0xFF701A75),
       },
       {
         'brand': 'مارال چرم | Maral Leather',
+        'category': 'کیف، کفش و چرم طبیعی',
         'desc': 'بوت‌ها و نیم‌بوت‌های زمستانه نبوک و چرم دست‌دوز طبی',
-        'badge': 'ضمانت ۲ ساله',
+        'badge': 'فروشگاه معتبر',
         'img': 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80',
         'color': const Color(0xFF451A03),
       },
       {
         'brand': 'بادی اسپینر | Body Spinner',
+        'category': 'پوشاک و مد',
         'desc': 'کاپشن پافر ضدآب، هودی و استریت‌استایل مدرن ایرانی',
-        'badge': 'حراج فصل',
+        'badge': 'فروشگاه معتبر',
         'img': 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=600&q=80',
         'color': const Color(0xFF1E3A8A),
       },
     ];
 
-    return SizedBox(
-      height: 120,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: showcaseItems.length,
-        itemBuilder: (context, index) {
-          final item = showcaseItems[index];
-          return Container(
-            width: 290,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                colors: [
-                  (item['color'] as Color).withOpacity(0.9),
-                  const Color(0xFF1E293B).withOpacity(0.95),
+    final filteredItems = _filterByCustomerTaste && state.customerLikedCategories.isNotEmpty
+        ? showcaseItems
+            .where((item) => state.customerLikedCategories.contains(item['category']))
+            .toList()
+        : showcaseItems;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.verified, color: Color(0xFF38BDF8), size: 18),
+                  SizedBox(width: 6),
+                  Text(
+                    'ویترین فروشگاه‌های معتبر',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                  ),
                 ],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
               ),
-              border: Border.all(color: Colors.white12),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 90,
-                  child: Opacity(
-                    opacity: 0.6,
-                    child: Image.network(
-                      item['img'] as String,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox(),
-                    ),
-                  ),
+              FilterChip(
+                label: Text(
+                  _filterByCustomerTaste
+                      ? 'بر اساس سلیقه شما (${state.customerLikedCategories.length})'
+                      : 'فیلتر سلیقه من',
+                  style: const TextStyle(fontSize: 11),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              item['badge'] as String,
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Icon(Icons.verified, color: Color(0xFF38BDF8), size: 14),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['brand'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item['desc'] as String,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 10, color: Colors.white70),
-                          ),
-                        ],
-                      ),
+                selected: _filterByCustomerTaste,
+                onSelected: (v) => setState(() => _filterByCustomerTaste = v),
+                selectedColor: const Color(0xFFD946EF).withOpacity(0.25),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: filteredItems.length,
+            itemBuilder: (context, index) {
+              final item = filteredItems[index];
+              final isCatLiked = state.customerLikedCategories.contains(item['category']);
+              return Container(
+                width: 290,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [
+                      (item['color'] as Color).withOpacity(0.9),
+                      const Color(0xFF1E293B).withOpacity(0.95),
                     ],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
                   ),
+                  border: Border.all(color: Colors.white12),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 90,
+                      child: Opacity(
+                        opacity: 0.6,
+                        child: Image.network(
+                          item['img'] as String,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const SizedBox(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0EA5E9).withOpacity(0.25),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.verified, color: Color(0xFF38BDF8), size: 12),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      item['badge'] as String,
+                                      style: const TextStyle(
+                                        color: Color(0xFF38BDF8),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              InkWell(
+                                onTap: () => state.toggleTasteCategory(item['category'] as String),
+                                child: Icon(
+                                  isCatLiked ? Icons.favorite : Icons.favorite_border,
+                                  color: isCatLiked ? const Color(0xFFD946EF) : Colors.white70,
+                                  size: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['brand'] as String,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item['desc'] as String,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 10, color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

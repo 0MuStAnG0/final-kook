@@ -36,10 +36,10 @@ data class Invoice(
     val isHygieneProtected: Boolean = false,
     val autoReleaseHoursRemaining: Int = 48,
     val exchangeRequestReason: String? = null,
-    val customerAddress: String = "تهران، میدان ونک، خ خدامی، پلاک ۲۴، واحد ۳",
-    val customerName: String = "مریم احمدی",
-    val customerPhone: String = "۰۹۱۲۹۸۷۶۵۴۳",
-    val postalCode: String = "۱۹۹۴۵۶۷۱۲۰",
+    val customerAddress: String = AppState.currentUser.location?.address ?: "تهران، میدان تجریش، پلاک ۴۲",
+    val customerName: String = AppState.currentUser.name,
+    val customerPhone: String = AppState.currentUser.phone.ifBlank { "۰۹۱۲۳۴۵۶۷۸۹" },
+    val postalCode: String = AppState.currentUser.location?.postalCode ?: "۱۹۹۴۵۶۷۱۲۰",
     val digitalSignature: String? = null,
     val unboxingVideoRecorded: Boolean = false
 )

@@ -215,10 +215,12 @@ object MockData {
         )
     )
 
+    private fun userById(id: String): User = users.firstOrNull { it.id == id } ?: currentUser
+
     val posts = mutableStateListOf(
         Post(
             id = "post_novin_1",
-            author = users[1], // نوین چرم
+            author = userById("brand_novin_leather"), // نوین چرم
             description = "کالکشن پاییز و زمستان نوین چرم رونمایی شد ✨ کاپشن چرم طبیعی ۱۰۰٪ گاوی با دوخت پریمیوم و استانداردهای صادراتی. تیزر رسمی با حضور بهرام رادان. امکان تست سایز و پرو حضوری در کلیه شعب سام‌سنتر، فرشته و تجریش با ارسال رایگان سراسر کشور. 🧥⚡ #نوین_چرم #کاپشن_چرم #چرم_طبیعی",
             likesCount = 28400,
             commentsCount = 890,
@@ -230,15 +232,18 @@ object MockData {
                 price = 14800000,
                 oldPrice = 17500000,
                 imageUrl = "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "کیف، کفش و چرم طبیعی",
+                availableColors = listOf("مشکی مات", "قهوه‌ای تیره", "عسلی"),
+                availableSizes = listOf("M", "L", "XL", "XXL")
             ),
             imageUrl = "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "موسیقی رسمی تیزر نوین چرم (بهرام رادان)",
-            videoUrl = "https://aspb3.cdn.asset.aparat.com/aparat-video/792fd47f408182d4c238bc477d7eedd51546393.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjMwNzlkNDAwMWQ2YjdjOWZmZWUxYzFkOTEyMWUzYTE4IiwiZXhwIjoxNzkwODEzMjgwLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9._XgAs9cUJbSskecPvWYRPAZO_qmr2QCzyL1qHCOjRGU"
+            videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/shortform_1.mp4"
         ),
         Post(
             id = "post_hakopian_1",
-            author = users[2], // هاکوپیان
+            author = userById("brand_hakopian"), // هاکوپیان
             description = "شکوه وقار و اصالت با کت و شلوار دست‌دوز و صنعتی هاکوپیان 👔 دوخته شده از مرغوب‌ترین پارچه پشمی سوپر ۱۲۰ ایتالیا با آستر کوپرو ضدتعریق. تیزر رسمی هنر خیاطی و دوخت اختصاصی خانه مد هاکوپیان. #هاکوپیان #کت_شلوار #استایل_رسمی",
             likesCount = 34500,
             commentsCount = 1120,
@@ -250,15 +255,18 @@ object MockData {
                 price = 21500000,
                 oldPrice = 25000000,
                 imageUrl = "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "کت و شلوار و پوشاک مردانه",
+                availableColors = listOf("سرمه‌ای", "مشکی کلاسیک", "ذغالی"),
+                availableSizes = listOf("48", "50", "52", "54")
             ),
             imageUrl = "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "موسیقی سمفونیک تیزر هاکوپیان",
-            videoUrl = "https://aspb12.cdn.asset.aparat.com/aparat-video/b80a7d31efd23e0a81dee144352eb8773339802-576p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjZiNTY4ZDYwMTVmZGZhZmFmYTEwYWQxMjg3ZDZjYzhlIiwiZXhwIjoxNzkwODEzNjgxLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.WkPMV9UrevnROew4NJ2ynU1NWYbkyhL7Ad-A4X7o-eE"
+            videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/shortform_2.mp4"
         ),
         Post(
             id = "post_maral_1",
-            author = users[3], // مارال چرم
+            author = userById("brand_maral_leather"), // مارال چرم
             description = "کالکشن تخصصی بوت، نیم‌بوت و کفش‌های چرم دست‌دوز مارال چرم 🥾 تیزر رسمی معرفی جشنواره با تخفیف‌های ویژه سراسری و گارانتی اصالت ۲ ساله چرم ایرانی. #مارال_چرم #بوت_زنانه #کفش_چرم",
             likesCount = 19200,
             commentsCount = 540,
@@ -270,15 +278,18 @@ object MockData {
                 price = 5600000,
                 oldPrice = 6900000,
                 imageUrl = "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "کیف و کفش چرم",
+                availableColors = listOf("عسلی نبوک", "قهوه‌ای سوخته", "مشکی"),
+                availableSizes = listOf("37", "38", "39", "40")
             ),
             imageUrl = "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "تیزر رسمی جشنواره مارال چرم",
-            videoUrl = "https://aspb12.cdn.asset.aparat.com/aparat-video/46d92e4ab5c552061683c6770fa0c91824273676-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImY3YmE5ZjBjOTkwM2ZkMzdlMzJmMDc2M2YyNDgxYjVkIiwiZXhwIjoxNzkwODEzMjk1LCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.fZkf_J3XaVQjnq3UaAvWjkm3Z_tZwZVVgd7xsFUCj9M"
+            videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/shortform_3.mp4"
         ),
         Post(
             id = "post_dorsa_1",
-            author = users[6], // چرم درسا
+            author = userById("brand_dorian_leather"), // چرم درسا
             description = "شاهکاری از تلفیق چرم طبیعی و طلا 👜 تیزر رسمی معرفی گروه محصولات لوکس چرم درسا و زیورآلات کالکشن دیبا. همراه با بسته‌بندی هاردباکس و شناسنامه اصالت. #درسا #کیف_زنانه #لاکچری",
             likesCount = 41200,
             commentsCount = 1450,
@@ -290,15 +301,18 @@ object MockData {
                 price = 9800000,
                 oldPrice = 11500000,
                 imageUrl = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "کیف، کفش و اکسسوری لوکس",
+                availableColors = listOf("مشکی طلایی", "زرشکی سنگی", "سبز زمردی"),
+                availableSizes = listOf("Medium", "Large")
             ),
             imageUrl = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "تیزر معرفی محصولات گروه چرم درسا",
-            videoUrl = "https://aspb2.cdn.asset.aparat.com/aparat-video/538437c229faa347b6af34423ca000c17346904-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImZmNDFiZjNiYmJmOGE3YjEzNjk0ZmM1ZDRlNGJkNjZiIiwiZXhwIjoxNzkwODEzMjgxLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.3PT5lvXABszAMREc3hKrOQA6I_gNz2HD-mmGGLIuSOs"
+            videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/shortform_4.mp4"
         ),
         Post(
             id = "post_bodyspinner_1",
-            author = users[5], // بادی اسپینر
+            author = userById("brand_body_spinner"), // بادی اسپینر
             description = "کالکشن جدید پاییز و زمستان بادی اسپینر 🧥🌧️ تیزر رسمی استریت‌استایل تن‌ریس؛ معرفی کاپشن پافر اورسایز ضدآب، هودی و سویشرت‌های مدرن ایرانی با طراحی روز جهانی. #بادی_اسپینر #پافر #استایل_خیابانی",
             likesCount = 31200,
             commentsCount = 890,
@@ -310,15 +324,18 @@ object MockData {
                 price = 4950000,
                 oldPrice = 6200000,
                 imageUrl = "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "استریت‌استایل و جین",
+                availableColors = listOf("مشکی مات", "سبز ارتشی", "طوسی نقره‌ای"),
+                availableSizes = listOf("S", "M", "L", "XL")
             ),
             imageUrl = "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "تیزر رسمی کالکشن پاییز زمستان بادی اسپینر",
-            videoUrl = "https://caspian25.cdn.asset.aparat.com/aparat-video/0e4bc1d6a27c09813fe647af2631579a67225294-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImY3ZDBkYzYxYTk5NTFhZWIyOThmYzMzYjEyMzFkYTA4IiwiZXhwIjoxNzkwODEzMjg4LCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.30jMAf5YuCEP69mA1pxOxvEi1fmX2EvBmczWWR00GJU"
+            videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/shortform_5.mp4"
         ),
         Post(
             id = "post_lcman_1",
-            author = users[4], // ال سی من
+            author = userById("brand_lcman"), // ال سی من
             description = "«بذار تنت انتخاب کنه!» 🧥 تیزر تبلیغاتی رسمی برند ال سی من (LC MAN) با حضور محمدرضا گلزار؛ کلکسیون پالتوهای فوتر پشمی، کت و پیراهن‌های کژوال بدون چروک. #ال_سی_من #پالتو_مردانه #محمدرضا_گلزار",
             likesCount = 38800,
             commentsCount = 1220,
@@ -330,15 +347,18 @@ object MockData {
                 price = 8200000,
                 oldPrice = 9600000,
                 imageUrl = "https://images.unsplash.com/photo-1544923246-77307dd654cb?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "پوشاک کژوال و پیراهن",
+                availableColors = listOf("طوسی ملانژ", "سرمه‌ای", "شتری"),
+                availableSizes = listOf("M", "L", "XL", "XXL")
             ),
             imageUrl = "https://images.unsplash.com/photo-1544923246-77307dd654cb?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "موسیقی تبلیغاتی رسمی ال سی من (بذار تنت انتخاب کنه)",
-            videoUrl = "https://aspb21.cdn.asset.aparat.com/aparat-video/7204eca46a062bc7ab4108c7d11055f428084822-480p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImNiYWY4MTdiZmY0NTYxNDc0OWNlNmQ4NDIwMTE0M2Q4IiwiZXhwIjoxNzkwODEzMjgxLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.EzFwhfAR-55tYfXBrL5WVnzWM7FZaMp_GBdafv7xly8"
+            videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/shortform_6.mp4"
         ),
         Post(
             id = "post_melli_1",
-            author = users[5], // کفش ملی
+            author = userById("brand_melli_shoes"), // کفش ملی
             description = "گام‌هایی استوار و ماندگار با کفش ملی 👞 تیزر تبلیغاتی رسمی گروه صنعتی کفش ملی؛ تولید تخصصی کفش‌های چرم طبی، اداری و راحتی با کفی مموری فوم ارگونومیک. #کفش_ملی #کفش_طبی #چرم_طبیعی",
             likesCount = 22400,
             commentsCount = 680,
@@ -350,15 +370,18 @@ object MockData {
                 price = 3850000,
                 oldPrice = 4600000,
                 imageUrl = "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "کفش طبی و اسپرت",
+                availableColors = listOf("قهوه‌ای کلاسیک", "مشکی رسمی"),
+                availableSizes = listOf("40", "41", "42", "43", "44")
             ),
             imageUrl = "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "تیزر تلویزیونی رسمی کفش ملی",
-            videoUrl = "https://aspb2.cdn.asset.aparat.com/aparat-video/9c28b21dd8dfc406ce15e1e76a33b8064271147-720p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjljMjY5ZjJkMGQ2NzU0MWRkOGM5M2M4MTM2MzNhMGYzIiwiZXhwIjoxNzkwODEzMjgyLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.s8-NjocAY7zhNbFkd6A0cgcCl5zwuR1ZQqOO2noeLSQ"
+            videoUrl = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
         ),
         Post(
             id = "post_novin_2",
-            author = users[1], // نوین چرم ۲
+            author = userById("brand_novin_leather"), // نوین چرم ۲
             description = "تیزر دوم کالکشن بهاره نوین چرم با هنرنمایی بهرام رادان 💼 کیف‌های اداری، دیپلمات و اکسسوری چرم طبیعی گاوی درجه یک دست‌دوز. #نوین_چرم #کیف_اداری #کیف_چرم",
             likesCount = 24600,
             commentsCount = 590,
@@ -370,11 +393,14 @@ object MockData {
                 price = 7900000,
                 oldPrice = 9200000,
                 imageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1080&q=80",
-                inStock = true
+                inStock = true,
+                category = "کیف، کفش و چرم طبیعی",
+                availableColors = listOf("عسلی", "قهوه‌ای تیره", "مشکی"),
+                availableSizes = listOf("Standard 15-inch")
             ),
             imageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1080&q=80",
             audioTrack = "تیزر نوین چرم و بهرام رادان - زمستان",
-            videoUrl = "https://aspb1.cdn.asset.aparat.com/aparat-video/2f1b98ff743785f63fff53d73b9c301d2366839-360p.mp4?wmsAuthSign=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjQ5NWQyYzE5ODM5NDBjODQzNjNmN2I3NjA2ZDZhNzU3IiwiZXhwIjoxNzkwODEzMjgyLCJpc3MiOiJTYWJhIElkZWEgR1NJRyJ9.k3_vpyEJIQIgBzGzWYvoc2MVxpK0CIdXd0lmLqIKJHU"
+            videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4"
         )
     )
 

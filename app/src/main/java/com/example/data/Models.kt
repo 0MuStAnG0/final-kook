@@ -68,7 +68,11 @@ data class Product(
     val price: Long,
     val oldPrice: Long? = null,
     val inStock: Boolean = true,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val category: String = "پوشاک و مد",
+    val availableColors: List<String> = listOf("مشکی", "سرمه‌ای", "قهوه‌ای", "سفید"),
+    val availableSizes: List<String> = listOf("M", "L", "XL", "Free Size"),
+    val stockCount: Int = 12
 )
 
 data class Post(

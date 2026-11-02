@@ -3,6 +3,8 @@ package com.example.data
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
+
 
 enum class UserMode(val title: String, val tabLabel: String) {
     CUSTOMER(title = "حالت خریدار", tabLabel = "سبد خرید"),
@@ -117,6 +119,58 @@ object AppState {
     // Current active user profile
     var currentUser by mutableStateOf(guestUser)
 
+    private var appContext: android.content.Context? = null
+    private val ioScope = kotlinx.coroutines.CoroutineScope(
+        kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO
+    )
+
+    fun initPreferences(context: android.content.Context) {
+        val appCtx = context.applicationContext
+        appContext = appCtx
+        val prefs = appCtx.getSharedPreferences("kook_user_prefs", android.content.Context.MODE_PRIVATE)
+        prefs.getStringSet("liked_categories", null)?.let { savedSet ->
+            if (savedSet.isNotEmpty()) {
+                customerLikedCategories = savedSet.toSet()
+            }
+        }
+        if (prefs.contains("wallet_balance")) {
+            customerWalletBalance = prefs.getLong("wallet_balance", 0L)
+        }
+        if (prefs.contains("kook_coins")) {
+            kookCoins = prefs.getInt("kook_coins", 0)
+        }
+        ioScope.launch {
+            runCatching {
+                val repo = com.example.repository.MarketOrderRepository(appCtx)
+                repo.allCartItems.collect { items ->
+                    if (items.isNotEmpty() || cartItems.isEmpty()) {
+                        cartItems = items
+                    }
+                }
+            }
+        }
+        ioScope.launch {
+            runCatching {
+                val repo = com.example.repository.MarketOrderRepository(appCtx)
+                repo.allTryOnBookings.collect { bookings ->
+                    if (bookings.isNotEmpty()) {
+                        customerBookings = bookings
+                    }
+                }
+            }
+        }
+    }
+
+    private fun persistUserPrefs() {
+        val ctx = appContext ?: return
+        val prefs = ctx.getSharedPreferences("kook_user_prefs", android.content.Context.MODE_PRIVATE)
+        prefs.edit()
+            .putStringSet("liked_categories", customerLikedCategories)
+            .putLong("wallet_balance", customerWalletBalance)
+            .putInt("kook_coins", kookCoins)
+            .apply()
+    }
+
     // Customer liked / favorite categories for personalized store showcase
     var customerLikedCategories by mutableStateOf(
         setOf("پوشاک و مد", "کیف و کفش", "چرم طبیعی", "استریت‌استایل")
@@ -128,6 +182,7 @@ object AppState {
         } else {
             customerLikedCategories + category
         }
+        persistUserPrefs()
     }
 
     fun isCategoryLiked(category: String): Boolean {
@@ -411,6 +466,14 @@ object AppState {
             status = "تایید شده (نوبت شما ثبت شد)"
         )
         customerBookings = listOf(newBooking) + customerBookings
+        appContext?.let { ctx ->
+            ioScope.launch {
+                runCatching {
+                    com.example.repository.MarketOrderRepository(ctx).saveTryOnBooking(newBooking)
+                    com.example.repository.CatalogRepository(ctx).syncTryOnBooking(newBooking)
+                }
+            }
+        }
         return newBooking
     }
 
@@ -422,16 +485,30 @@ object AppState {
 
     fun addToCart(product: Product, storeName: String, quantity: Int = 1, color: String? = null, size: String? = null) {
         val existing = cartItems.find { it.product.id == product.id }
+        val updatedItem: CartItem
         cartItems = if (existing != null) {
-            cartItems.map { if (it.product.id == product.id) it.copy(quantity = it.quantity + quantity) else it }
+            updatedItem = existing.copy(
+                quantity = existing.quantity + quantity,
+                selectedColor = color ?: existing.selectedColor,
+                selectedSize = size ?: existing.selectedSize
+            )
+            cartItems.map { if (it.product.id == product.id) updatedItem else it }
         } else {
-            cartItems + CartItem(
+            updatedItem = CartItem(
                 product = product,
                 storeName = storeName,
                 quantity = quantity,
                 selectedColor = color,
                 selectedSize = size
             )
+            cartItems + updatedItem
+        }
+        appContext?.let { ctx ->
+            ioScope.launch {
+                runCatching {
+                    com.example.repository.MarketOrderRepository(ctx).addToCart(updatedItem)
+                }
+            }
         }
     }
 
@@ -441,10 +518,24 @@ object AppState {
         } else {
             cartItems.map { if (it.product.id == productId) it.copy(quantity = newQty) else it }
         }
+        appContext?.let { ctx ->
+            ioScope.launch {
+                runCatching {
+                    com.example.repository.MarketOrderRepository(ctx).updateCartQuantity(productId, newQty)
+                }
+            }
+        }
     }
 
     fun removeFromCart(productId: String) {
         cartItems = cartItems.filter { it.product.id != productId }
+        appContext?.let { ctx ->
+            ioScope.launch {
+                runCatching {
+                    com.example.repository.MarketOrderRepository(ctx).removeFromCart(productId)
+                }
+            }
+        }
     }
 
     fun isGuestUser(): Boolean {
@@ -453,9 +544,10 @@ object AppState {
 
     fun checkoutCart(): StoreOrder? {
         if (isGuestUser()) return null
-        if (cartItems.isEmpty()) return null
-        val total = cartItems.sumOf { it.product.price * it.quantity }
-        val orderItems = cartItems.map {
+        val snapshotItems = cartItems.toList()
+        if (snapshotItems.isEmpty()) return null
+        val total = snapshotItems.sumOf { it.product.price * it.quantity }
+        val orderItems = snapshotItems.map {
             StoreOrderItem(
                 product = it.product,
                 quantity = it.quantity,
@@ -471,19 +563,55 @@ object AppState {
             customerAvatar = currentUser.avatarUrl,
             customerPhone = currentUser.phone.ifEmpty { "۰۹۱۲۳۴۵۶۷۸۹" },
             customerCity = currentUser.city,
-            customerAddress = "تهران، میدان تجریش، پلاک ۴۲",
+            customerAddress = currentUser.location?.address ?: "تهران، میدان تجریش، پلاک ۴۲",
             orderedTimeAgo = "هم‌اکنون",
             items = orderItems,
             totalAmount = total,
             status = OrderStatus.PENDING,
-            storeName = cartItems.firstOrNull()?.storeName ?: "فروشگاه کوک",
-            isEscrowProtected = true
+            storeName = snapshotItems.firstOrNull()?.storeName ?: "فروشگاه کوک",
+            isEscrowProtected = true,
+            customerId = currentUser.id
         )
 
         // Add to customer orders
         customerOrders = listOf(newOrder) + customerOrders
         // Add to store orders in MockData
         MockData.addStoreOrder(newOrder)
+
+        // Sync multi-item cart order with backend server & local invoice ledger
+        appContext?.let { ctx ->
+            ioScope.launch {
+                runCatching {
+                    val orderRepo = com.example.repository.MarketOrderRepository(ctx)
+                    orderRepo.saveInvoice(
+                        Invoice(
+                            id = newOrder.orderId,
+                            items = snapshotItems.map {
+                                InvoiceItem(
+                                    title = it.product.title,
+                                    quantity = it.quantity,
+                                    unitPrice = it.product.price,
+                                    sizeOrColor = listOfNotNull(it.selectedColor, it.selectedSize).joinToString(" | ").ifBlank { null }
+                                )
+                            },
+                            totalAmount = total,
+                            status = InvoiceStatus.PENDING,
+                            customerAddress = newOrder.customerAddress,
+                            customerName = newOrder.customerName,
+                            customerPhone = newOrder.customerPhone
+                        )
+                    )
+                    orderRepo.clearCart()
+                    com.example.repository.CatalogRepository(ctx).createCartOrder(
+                        cartItems = snapshotItems,
+                        customerName = newOrder.customerName,
+                        customerPhone = newOrder.customerPhone,
+                        customerCity = newOrder.customerCity,
+                        customerAddress = newOrder.customerAddress
+                    )
+                }
+            }
+        }
 
         // Record transaction
         transactions = listOf(
@@ -512,7 +640,7 @@ object AppState {
             customerAvatar = currentUser.avatarUrl,
             customerPhone = currentUser.phone.ifEmpty { "۰۹۱۲۳۴۵۶۷۸۹" },
             customerCity = currentUser.city,
-            customerAddress = "تهران، میدان تجریش، پلاک ۴۲",
+            customerAddress = currentUser.location?.address ?: "تهران، میدان تجریش، پلاک ۴۲",
             orderedTimeAgo = "هم‌اکنون",
             items = listOf(
                 StoreOrderItem(
@@ -524,10 +652,27 @@ object AppState {
             totalAmount = product.price,
             status = OrderStatus.PENDING,
             storeName = storeName,
-            isEscrowProtected = true
+            isEscrowProtected = true,
+            customerId = currentUser.id
         )
         customerOrders = listOf(newOrder) + customerOrders
         MockData.addStoreOrder(newOrder)
+
+        appContext?.let { ctx ->
+            ioScope.launch {
+                runCatching {
+                    com.example.repository.CatalogRepository(ctx).createOrder(
+                        product = product,
+                        storeName = storeName,
+                        quantity = 1,
+                        customerName = newOrder.customerName,
+                        customerPhone = newOrder.customerPhone,
+                        customerCity = newOrder.customerCity,
+                        customerAddress = newOrder.customerAddress
+                    )
+                }
+            }
+        }
 
         transactions = listOf(
             WalletTransaction(
@@ -559,7 +704,8 @@ object AppState {
             title = title,
             price = price,
             inStock = true,
-            imageUrl = finalImage
+            imageUrl = finalImage,
+            category = category
         )
 
         val updatedUser = currentUser.copy(
@@ -580,7 +726,7 @@ object AppState {
             savesCount = 0,
             product = newProduct,
             imageUrl = finalImage,
-            videoUrl = "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4"
+            videoUrl = "https://storage.googleapis.com/exoplayer-test-media-0/shortform_1.mp4"
         )
 
         MockData.addPost(newPost)
@@ -590,6 +736,7 @@ object AppState {
     fun sendLiveGift(coinCost: Int): Boolean {
         if (kookCoins >= coinCost) {
             kookCoins -= coinCost
+            persistUserPrefs()
             return true
         }
         return false
@@ -597,6 +744,7 @@ object AppState {
 
     fun addWalletFunds(amount: Long) {
         customerWalletBalance += amount
+        persistUserPrefs()
         transactions = listOf(
             WalletTransaction(
                 id = "TX-" + (100..999).random(),

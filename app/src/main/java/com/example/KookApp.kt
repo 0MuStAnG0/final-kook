@@ -79,6 +79,18 @@ fun KookApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(Unit) {
+        AppState.initPreferences(context)
+        try {
+            val orderRepo = com.example.repository.MarketOrderRepository(context)
+            kotlinx.coroutines.withTimeoutOrNull(1500) {
+                orderRepo.allTryOnBookings.collect { savedBookings ->
+                    if (savedBookings.isNotEmpty() && AppState.customerBookings.isEmpty()) {
+                        AppState.customerBookings = savedBookings
+                    }
+                    return@collect
+                }
+            }
+        } catch (_: Throwable) {}
         try {
             kotlinx.coroutines.withTimeoutOrNull(2500) {
                 val authRepository = com.example.network.AuthRepository(context)

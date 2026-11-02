@@ -68,24 +68,44 @@ fun WalletScreen(
     val coroutineScope = rememberCoroutineScope()
     val repository = remember { MarketOrderRepository(context) }
     val roomCartItems by repository.allCartItems.collectAsStateWithLifecycle(initialValue = emptyList())
+    val roomBookings by repository.allTryOnBookings.collectAsStateWithLifecycle(initialValue = emptyList())
 
     val currentMode = AppState.currentUserMode
-    // Sync Room cart with AppState to keep everything reactive and persistent
+    // Sync Room cart & bookings with AppState without wiping in-memory items before hydration
     LaunchedEffect(roomCartItems) {
-        AppState.cartItems = roomCartItems
+        if (roomCartItems.isNotEmpty() || AppState.cartItems.isEmpty()) {
+            AppState.cartItems = roomCartItems
+        }
     }
-    val cartItems = roomCartItems
+    LaunchedEffect(roomBookings) {
+        if (roomBookings.isNotEmpty() && AppState.customerBookings.isEmpty()) {
+            AppState.customerBookings = roomBookings
+        }
+    }
+    val cartItems = if (roomCartItems.isNotEmpty()) roomCartItems else AppState.cartItems
     var storeOrders by remember { mutableStateOf<List<StoreOrder>>(emptyList()) }
     val catalog = remember { com.example.repository.CatalogRepository(context) }
 
     LaunchedEffect(currentMode, AppState.isLoggedIn) {
-        storeOrders = if (currentMode == UserMode.STORE) {
+        val remoteOrders = if (currentMode == UserMode.STORE) {
             catalog.getStoreOrders()
         } else {
             catalog.getOrdersForCurrentUser()
         }
-        if (currentMode != UserMode.STORE) {
-            AppState.customerOrders = storeOrders
+        if (remoteOrders.isNotEmpty()) {
+            val localOnly = AppState.customerOrders.filter { local ->
+                remoteOrders.none { it.orderId == local.orderId }
+            }
+            storeOrders = if (currentMode == UserMode.STORE) remoteOrders else (localOnly + remoteOrders)
+            if (currentMode != UserMode.STORE) {
+                AppState.customerOrders = storeOrders
+            }
+        } else {
+            storeOrders = if (currentMode == UserMode.STORE) {
+                com.example.data.MockData.sampleStoreOrders.toList()
+            } else {
+                AppState.customerOrders
+            }
         }
     }
     
@@ -296,6 +316,9 @@ fun WalletScreen(
                                     trackingCode = trackingCode ?: order.trackingCode
                                 )
                             } else order
+                        }
+                        coroutineScope.launch {
+                            catalog.updateOrderStatus(orderId, newStatus, trackingCode)
                         }
                     },
                     onNavigateToChat = onNavigateToChat

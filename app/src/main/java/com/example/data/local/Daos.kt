@@ -63,3 +63,16 @@ interface CartDao {
     suspend fun clearCart()
 }
 
+@Dao
+interface TryOnBookingDao {
+    @Query("SELECT * FROM try_on_bookings ORDER BY createdAtTimestamp DESC")
+    fun getAllBookings(): Flow<List<TryOnBookingEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBooking(booking: TryOnBookingEntity)
+
+    @Query("DELETE FROM try_on_bookings WHERE id = :id")
+    suspend fun deleteBooking(id: String)
+}
+
+

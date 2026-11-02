@@ -57,6 +57,10 @@ fun VideoFeedItem(
     exoPlayer: androidx.media3.exoplayer.ExoPlayer? = null,
     onProfileClicked: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val postRepository = remember { com.example.repository.NetworkPostRepository(context) }
+
     var isLiked by remember { mutableStateOf(post.isLiked) }
     var likesCount by remember { mutableStateOf(post.likesCount) }
     var isSaved by remember { mutableStateOf(post.isSaved) }
@@ -83,6 +87,7 @@ fun VideoFeedItem(
                     if (!isLiked) {
                         isLiked = true
                         likesCount++
+                        coroutineScope.launch { postRepository.toggleLike(post.id) }
                     }
                     val emojiText = extractEmoji(post.description)
                     val newEmoji = EmojiAnimation(System.currentTimeMillis(), offset.x, offset.y, emojiText)
@@ -93,7 +98,10 @@ fun VideoFeedItem(
     ) {
 
         var isPlaying by remember { mutableStateOf(false) }
-        var hasPlaybackError by remember(post.videoUrl) { mutableStateOf(false) }
+        val resolvedVideoUrl = remember(post.videoUrl, post.id) {
+            com.example.utils.PlayerManager.resolvePlayableVideoUrl(post.videoUrl, post.id)
+        }
+        var hasPlaybackError by remember(resolvedVideoUrl) { mutableStateOf(false) }
         
         LaunchedEffect(isFocused) {
             if (isFocused) {
@@ -104,11 +112,13 @@ fun VideoFeedItem(
             }
         }
 
-        if (post.videoUrl != null && exoPlayer != null) {
-            DisposableEffect(exoPlayer, post.videoUrl) {
+        val isCodec2Supported = remember { com.example.utils.PlayerManager.isCodec2HardwareSupported() }
+
+        if (resolvedVideoUrl != null && exoPlayer != null && isCodec2Supported) {
+            DisposableEffect(exoPlayer, resolvedVideoUrl) {
                 val listener = object : androidx.media3.common.Player.Listener {
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                        android.util.Log.w("VideoFeedItem", "Playback error for ${post.videoUrl}: ${error.message}")
+                        android.util.Log.w("VideoFeedItem", "Playback error for $resolvedVideoUrl: ${error.message}")
                         hasPlaybackError = true
                         try {
                             exoPlayer.playWhenReady = false
@@ -120,7 +130,7 @@ fun VideoFeedItem(
                 exoPlayer.addListener(listener)
                 onDispose {
                     exoPlayer.removeListener(listener)
-                    if (exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() == post.videoUrl) {
+                    if (exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() == resolvedVideoUrl) {
                         try {
                             exoPlayer.playWhenReady = false
                             exoPlayer.pause()
@@ -131,12 +141,12 @@ fun VideoFeedItem(
                 }
             }
 
-            LaunchedEffect(isPlaying, hasPlaybackError) {
+            LaunchedEffect(isPlaying, hasPlaybackError, resolvedVideoUrl) {
                 if (isPlaying && !hasPlaybackError) {
                     try {
                         val currentUri = exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString()
-                        if (currentUri != post.videoUrl) {
-                            val mediaItem = androidx.media3.common.MediaItem.fromUri(post.videoUrl)
+                        if (currentUri != resolvedVideoUrl) {
+                            val mediaItem = androidx.media3.common.MediaItem.fromUri(resolvedVideoUrl)
                             exoPlayer.setMediaItem(mediaItem)
                             exoPlayer.prepare()
                         }
@@ -145,7 +155,7 @@ fun VideoFeedItem(
                         hasPlaybackError = true
                     }
                 } else {
-                    if (exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() == post.videoUrl) {
+                    if (exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() == resolvedVideoUrl) {
                         try {
                             exoPlayer.playWhenReady = false
                             exoPlayer.pause()
@@ -186,11 +196,26 @@ fun VideoFeedItem(
                 )
             }
         } else {
+            val infiniteTransition = rememberInfiniteTransition(label = "ken_burns_feed_motion")
+            val animatedScale by infiniteTransition.animateFloat(
+                initialValue = 1.0f,
+                targetValue = if (isPlaying) 1.07f else 1.0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 7500, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "ken_burns_scale"
+            )
             AsyncImage(
                 model = post.imageUrl,
-                contentDescription = "Post Image",
+                contentDescription = "Post Video Showcase",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = if (isFocused) animatedScale else 1f
+                        scaleY = if (isFocused) animatedScale else 1f
+                    }
             )
         }
 
@@ -321,6 +346,7 @@ fun VideoFeedItem(
                 onClick = {
                     isLiked = !isLiked
                     if (isLiked) likesCount++ else likesCount--
+                    coroutineScope.launch { postRepository.toggleLike(post.id) }
                 }
             )
 
@@ -351,6 +377,7 @@ fun VideoFeedItem(
                 onClick = {
                     isSaved = !isSaved
                     if (isSaved) savesCount++ else savesCount--
+                    coroutineScope.launch { postRepository.toggleSave(post.id) }
                 }
             )
         }

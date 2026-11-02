@@ -113,10 +113,23 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         val newMsg = ChatMessage(
             id = UUID.randomUUID().toString(),
             senderId = senderId,
+            text = "معرفی محصول: ${product.title} (${product.price} تومان)",
             type = MessageType.PRODUCT,
             product = product
         )
         _messages.update { it + newMsg }
+        val chatId = activeChatId ?: return
+        if (!localOnly) {
+            viewModelScope.launch {
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    text = newMsg.text,
+                    type = "PRODUCT",
+                    productId = product.id,
+                    amount = product.price
+                )
+            }
+        }
     }
 
     fun createInvoice(senderId: String, invoice: Invoice) {
@@ -125,10 +138,22 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val newMsg = ChatMessage(
                 id = UUID.randomUUID().toString(),
                 senderId = senderId,
+                text = "فاکتور رسمی #${invoice.id} به مبلغ ${invoice.totalAmount} تومان",
                 type = MessageType.INVOICE,
                 invoice = invoice
             )
             _messages.update { it + newMsg }
+            val chatId = activeChatId
+            if (chatId != null && !localOnly) {
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    text = newMsg.text,
+                    type = "INVOICE",
+                    invoiceId = invoice.id,
+                    amount = invoice.totalAmount,
+                    status = invoice.status.name
+                )
+            }
         }
     }
 
@@ -141,6 +166,16 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         msg.copy(invoice = msg.invoice.copy(status = status))
                     } else msg
                 }
+            }
+            val chatId = activeChatId
+            if (chatId != null && !localOnly) {
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    text = "به‌روزرسانی وضعیت فاکتور #$invoiceId: ${status.name}",
+                    type = "INVOICE",
+                    invoiceId = invoiceId,
+                    status = status.name
+                )
             }
         }
     }
@@ -155,6 +190,16 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     } else msg
                 }
             }
+            val chatId = activeChatId
+            if (chatId != null && !localOnly) {
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    text = "کد رهگیری مرسوله فاکتور #$invoiceId: $trackingCode",
+                    type = "INVOICE",
+                    invoiceId = invoiceId,
+                    status = InvoiceStatus.SHIPPED.name
+                )
+            }
         }
     }
 
@@ -168,6 +213,16 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     } else msg
                 }
             }
+            val chatId = activeChatId
+            if (chatId != null && !localOnly) {
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    text = "درخواست تعویض برای فاکتور #$invoiceId: $reason",
+                    type = "INVOICE",
+                    invoiceId = invoiceId,
+                    status = InvoiceStatus.EXCHANGE_REQUESTED.name
+                )
+            }
         }
     }
 
@@ -175,11 +230,24 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         val newMsg = ChatMessage(
             id = UUID.randomUUID().toString(),
             senderId = senderId,
+            text = "پیشنهاد پرداخت امن امانی به مبلغ $amount تومان",
             type = MessageType.SECURE_PAYMENT,
             securePaymentState = SecurePaymentState.PROPOSED,
             securePaymentAmount = amount
         )
         _messages.update { it + newMsg }
+        val chatId = activeChatId ?: return
+        if (!localOnly) {
+            viewModelScope.launch {
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    text = newMsg.text,
+                    type = "SECURE_PAYMENT",
+                    amount = amount,
+                    status = SecurePaymentState.PROPOSED.name
+                )
+            }
+        }
     }
 
     fun updatePaymentState(messageId: String, state: SecurePaymentState) {
@@ -188,6 +256,17 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 if (msg.id == messageId) {
                     msg.copy(securePaymentState = state)
                 } else msg
+            }
+        }
+        val chatId = activeChatId ?: return
+        if (!localOnly) {
+            viewModelScope.launch {
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    text = "وضعیت پرداخت امن به ${state.name} تغییر یافت",
+                    type = "SECURE_PAYMENT",
+                    status = state.name
+                )
             }
         }
     }

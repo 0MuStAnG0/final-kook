@@ -151,4 +151,41 @@ class MarketOrderRepository(context: Context) {
     suspend fun clearCart() {
         cartDao.clearCart()
     }
+
+    private val bookingDao = db.tryOnBookingDao()
+
+    val allTryOnBookings: Flow<List<TryOnBooking>> = bookingDao.getAllBookings().map { list ->
+        list.map { entity ->
+            TryOnBooking(
+                id = entity.id,
+                storeName = entity.storeName,
+                storeAvatar = entity.storeAvatar,
+                productTitle = entity.productTitle,
+                productImage = entity.productImage,
+                scheduledDate = entity.scheduledDate,
+                scheduledTime = entity.scheduledTime,
+                bookingCode = entity.bookingCode,
+                storeAddress = entity.storeAddress,
+                status = entity.status
+            )
+        }
+    }
+
+    suspend fun saveTryOnBooking(booking: TryOnBooking) {
+        bookingDao.insertBooking(
+            TryOnBookingEntity(
+                id = booking.id,
+                storeName = booking.storeName,
+                storeAvatar = booking.storeAvatar,
+                productTitle = booking.productTitle,
+                productImage = booking.productImage,
+                scheduledDate = booking.scheduledDate,
+                scheduledTime = booking.scheduledTime,
+                bookingCode = booking.bookingCode,
+                storeAddress = booking.storeAddress,
+                status = booking.status
+            )
+        )
+    }
 }
+

@@ -172,7 +172,29 @@ data class CreateOrderRequest(
     val customerCity: String,
     val customerAddress: String,
     val totalAmount: Long,
-    val storeName: String
+    val storeName: String,
+    val selectedColor: String? = null,
+    val selectedSize: String? = null,
+    val items: List<OrderItemDto>? = null
+)
+
+data class UpdateOrderStatusRequest(
+    val status: String,
+    val trackingCode: String? = null
+)
+
+data class CreateChatRequest(
+    val peerUserId: String
+)
+
+data class TryOnBookingRequest(
+    val id: String,
+    val storeName: String,
+    val productTitle: String,
+    val scheduledDate: String,
+    val scheduledTime: String,
+    val bookingCode: String,
+    val storeAddress: String
 )
 
 // Android Kotlin: Retrofit API Service
@@ -208,6 +230,15 @@ interface OrangeItApiService {
     @POST("api/posts")
     suspend fun createPost(@Body req: CreatePostRequest): Response<PostDto>
 
+    @POST("api/posts/{postId}/like")
+    suspend fun toggleLikePost(@retrofit2.http.Path("postId") postId: String): Response<Map<String, Any>>
+
+    @POST("api/posts/{postId}/save")
+    suspend fun toggleSavePost(@retrofit2.http.Path("postId") postId: String): Response<Map<String, Any>>
+
+    @POST("api/stores/{storeId}/follow")
+    suspend fun toggleFollowStore(@retrofit2.http.Path("storeId") storeId: String): Response<Map<String, Any>>
+
     @GET("api/products")
     suspend fun getProducts(): Response<List<ProductDto>>
 
@@ -219,6 +250,15 @@ interface OrangeItApiService {
 
     @POST("api/orders")
     suspend fun createOrder(@Body req: CreateOrderRequest): Response<OrderDto>
+
+    @PUT("api/orders/{orderId}/status")
+    suspend fun updateOrderStatus(
+        @retrofit2.http.Path("orderId") orderId: String,
+        @Body req: UpdateOrderStatusRequest
+    ): Response<OrderDto>
+
+    @POST("api/bookings")
+    suspend fun createTryOnBooking(@Body req: TryOnBookingRequest): Response<Map<String, Any>>
 
     @GET("api/health")
     suspend fun checkHealth(): Response<Map<String, Any>>
@@ -233,6 +273,9 @@ interface OrangeItApiService {
     @GET("api/chat")
     suspend fun getChats(): Response<List<ChatDto>>
 
+    @POST("api/chat")
+    suspend fun createChat(@Body req: CreateChatRequest): Response<ChatDto>
+
     @GET("api/chat/{chatId}/messages")
     suspend fun getChatMessages(@retrofit2.http.Path("chatId") chatId: String): Response<List<ChatMessageDto>>
 
@@ -245,7 +288,11 @@ interface OrangeItApiService {
 
 data class SendChatMessageRequest(
     val text: String,
-    val type: String = "TEXT"
+    val type: String = "TEXT",
+    val productId: String? = null,
+    val invoiceId: String? = null,
+    val amount: Long? = null,
+    val status: String? = null
 )
 
 data class ChatLastMessageDto(
